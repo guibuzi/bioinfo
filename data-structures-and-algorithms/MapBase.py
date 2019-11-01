@@ -1,3 +1,6 @@
+from random import randrange
+
+
 class MapBase(MutableMapping):
 
     class _Item:
@@ -237,8 +240,7 @@ class SortedTaleMap(MapBase):
         if start is None:
             j = 0
         else:
-            j = self._find_index(k, 0, len(self._table) - 1)
+            j = self._find_index(start, 0, len(self._table) - 1)
         while j < len(self._table) and (stop is None or self._table[j]._key < stop):
             yield (self._table[j]._key, self._table[j]._value)
             j += 1
-    

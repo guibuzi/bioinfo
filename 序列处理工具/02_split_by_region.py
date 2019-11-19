@@ -1,41 +1,30 @@
-import pandas as pd
-
-
-def substrate_region(region, df):
-    _df2 = df[df['region'].isin([region])]
-
-    _protein_list = {'HA': 'HA', 'NA': 'NA', 'PA': 'PA', 'PB1': 'PB1', 'PB2': 'PB2',
-                     'M1': 'MP', 'M2': 'MP', 'NP': 'NP', 'NS': 'NS'}
-    for _key, _value in _protein_list.items():
-        _df3 = _df2[_df2['{} Segment_Id'.format(_value)].notna()][['Isolate_Id',
-                                                                   '{} Segment_Id'.format(_value), 'Isolate_Name', 'year']]
-        _df3['{} Segment_Id'.format(_value)] = _df3['{} Segment_Id'.format(_value)].str.strip()
-        segment_list = _df3['{} Segment_Id'.format(_value)].to_list()
-
-        _protein = r'D:\protein_{}.fasta'.format(_key)
-        _sub_protein = r'D:\{0}_{1}.fasta'.format(region, _key)
-
-        with open(_protein, 'r') as f:
-            _segment_dict = {}
-            _lines = f.readlines()
-            _ha_epi = ''
-            for _line in _lines:
-                if _line.startswith('>'):
-                    _ha_epi = _line[1:-1]
-                else:
-                    _segment_dict[_ha_epi] = _line[:-1]
-
-        _want = {ha: _segment_dict.get(ha) for ha in segment_list if _segment_dict.get(ha)}
-
-        with open(_sub_protein, 'w') as fw:
-            for key, value in _want.items():
-                fw.write(">" + key + "\n")
-                fw.write(value + "\n")
+import json
 
 
 if __name__ == '__main__':
-    df = pd.read_excel(r"D:\python_work\gisadi_data\ioslate_information_处理.xlsx")
-    df['region'] = df['Location'].str.split(' / ').str.get(0)
-    df['country'] = df['Location'].str.split(' / ').str.get(1)
-    df['year'] = df['Collection_Date'].str.split('-').str.get(0)
-    substrate_region('Europe', df)
+    with open("/home/zeng/Desktop/H3N2/data/Isolation_information/ioslation_information.json") as f:
+        contents = f.read()
+
+    json_file = json.loads(contents)
+    info_dict = dict(json_file)
+
+    want_info = {key: value for key, value in info_dict.items() if 'United States' in value['location']}
+    want_isl = set(want_info.keys())
+
+    protein_list = {'HA': 'HA', 'NA': 'NA', 'PA': 'PA', 'PB1': 'PB1', 'PB2': 'PB2',
+                    'M1': 'MP', 'NP': 'NP', 'NS1': 'NS'}
+    
+    for key, value in protein_list.items():    
+        fw = open("/home/zeng/Desktop/usa/usa_{}.fasta".format(key), "w")
+        fr = open("/home/zeng/Desktop/H3N2/data/Protein/protein_{}.fasta".format(key))
+        content = fr.read()
+        items = content.split(">")[1:]
+        for item in items:
+            isl = item.split("\n")[0].split(" | ")[1]
+            if isl in want_isl:
+                date = want_info[isl]['date']
+                seq = item.split("\n")[1]
+                fw.write(">" + isl + " | " + date + "\n")
+                fw.write(seq + "\n")
+        fw.close()
+        fr.close()

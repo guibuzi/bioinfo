@@ -37,8 +37,8 @@ def read_csv(file_path):
 if __name__ == "__main__":
     # old database
     original = read_csv("/home/zeng/Desktop/H3N2/data/Isolation_information/ioslation_information.csv")
-    with open("/home/zeng/Desktop/H3N2/data/Isolation_information/ioslation_information.json", 'w') as g:
-        g.write(original[0])
+    # with open("/home/zeng/Desktop/H3N2/data/Isolation_information/ioslation_information.json", 'w') as g:
+    #     g.write(original[0])
     
     origianl2 = json.loads(original[0])
     already_isolation = {key for key in origianl2.keys()}
@@ -46,18 +46,15 @@ if __name__ == "__main__":
 
     # read new entry
     read = read_csv("/home/zeng/Desktop/US_oct/gisaid_epiflu_isolates.csv")
-    with open("/home/zeng/Desktop/US_oct/isolation_information.json", 'w') as g:
-        g.write(read[0])
-
-    # read new entry
     read2 = json.loads(read[0])
     read3 = {key: value for key, value in read2.items() if key not in already_isolation}
-    new_entry = [key+"\n" for key in read3.keys()]
+
     print("{} new entrys has been added.".format(len(read3)))
-    read4 = json.dumps(read3, sort_keys=False, indent=4, separators=(',', ': '))
+
+    # 更新数据库
+    origianl2.update(read3)
+    print("Now we have {} sequences.".format(len(origianl2)))
+    read4 = json.dumps(origianl2, sort_keys=False, indent=4, separators=(',', ': '))
 
     with open("/home/zeng/Desktop/H3N2/data/Isolation_information/ioslation_information.json", 'a') as g:
         g.write(read4)
-    
-    with open("/home/zeng/Desktop/new_entry.txt", 'w') as g:
-        g.writelines(new_entry)

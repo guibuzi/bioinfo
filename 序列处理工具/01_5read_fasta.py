@@ -8,7 +8,7 @@ def read_fasta(file_path):
     parameters:
     file_path: fasta 文件所在路径
     
-    return: list of dict
+    return: dict of seq
     """
     data = []
     with open(file_path) as f:
@@ -39,11 +39,11 @@ def split_by_segment(data):
         protein.append(a)
 
     counter_by_segment = Counter(protein)
+    print("\n============================== 本轮更新的序列有 ==============================")
     for key, value in counter_by_segment.items():
         uni_pro.append(key)
-        print("============================== 本轮更新的序列有 ==============================")
         print("The number of {0} is: {1}".format(key, str(value)))
-        print("================================ 本轮更新完毕 ================================")
+    print("================================ 本轮更新完毕 ================================\n")
     
     # 按蛋白类型写出文件
     for protein in uni_pro:
@@ -53,7 +53,7 @@ def split_by_segment(data):
                     name = seq_list['id']
                     epi = seq_list['epi']
                     seq = seq_list['seq']
-                    fw.write(">" + name + " | " + epi  + "\n" + seq + '\n')
+                    fw.write(">" + name + "\n" + seq + '\n')
 
 
 def update_fasta(data_path, old_entry):

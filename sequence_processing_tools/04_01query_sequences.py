@@ -31,13 +31,13 @@ def read_fasta(path):
 
 
 if __name__ == '__main__':
-    to_query = read_query_table("/home/zeng/python_work/bioinfo/mosaic\sampling.txt")
+    to_query = read_query_table("/home/zeng/python_work/bioinfo/mosaic/sampling.txt")
     info = read_info_json("/home/zeng/Desktop/H3N2/data/Isolation_information/ioslation_information.json")
-    fasta = read_fasta("/home/zeng/Desktop/H3N2/data/Protein/protein_HA.fasta")
+    fasta = read_fasta("/home/zeng/Desktop/H3N2/data/Protein/protein_NA.fasta")
     to_query = [x[0] for x in to_query]
-    fw = open("/home/zeng/python_work/bioinfo/mosaic/us_ha_sampling.fasta", "w")
+    fw = open("/home/zeng/python_work/bioinfo/mosaic/us_na_sampling.fasta", "w")
     for query in to_query:
-        seg_id = info[query]['HA']
+        seg_id = info[query]['NA']
         date = info[query]['date']
         name = info[query]['name']
         location = info[query]['location']

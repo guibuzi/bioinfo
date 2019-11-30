@@ -35,20 +35,19 @@ if __name__ == "__main__":
     print("\nInitial coverage: {}\n\n\n".format(coverage))
 
     initlog = open("/home/zeng/Desktop/log.txt", "w")
-    initlog.close()
-    log = open("/home/zeng/Desktop/log.txt", "a")
-    log.write("Initial mosaic: ")
+    initlog.write("Initial mosaic: \n")
     for mm in mosaic:
-        log.write(mm)
-    log.write("\nInitial coverage: {}\n\n".format(coverage))
-
+        initlog.write(mm + "\n")
+    initlog.write("\nInitial coverage: {}\n\n".format(coverage))
+    initlog.close()
 
     delta = coverage
     iters = 0
     coverage_list = [coverage]
     while True:
-        log.write("The {} iteration.".format(iters))
-        print("The {} iteration.".format(iters))
+        log = open("/home/zeng/Desktop/log.txt", "a")
+        log.write("\nThe {} iteration.\n".format(iters))
+        print("The {} iteration.\n".format(iters))
         old_coverage = coverage
 
         for i, popu_i in enumerate(popus):
@@ -93,11 +92,11 @@ if __name__ == "__main__":
                         mosaic.pop(i)
                         mosaic.insert(i, child)
                         coverage = child_score
-                        log.write("Update {} to mosaic {}.".format(child, i))
+                        log.write("Update {} to mosaic {}.\n".format(child, i))
                         print("\nUpdate {} to mosaic {}.".format(child, i))
                         #pprint("Current mosaic: ")
                         #pprint(mosaic)
-                        log.write("Current coverage: {}".format(coverage))
+                        log.write("Current coverage: {}\n".format(coverage))
                         print("Current coverage: {}".format(coverage))
                 else:
                     #print("Rejected because raw epitope!")
@@ -107,7 +106,8 @@ if __name__ == "__main__":
         delta = coverage - old_coverage
         iters += 1
         coverage_list.append(coverage)
+        log.write("After this iteration current coverage is: ".format(coverage))
         log.write("The fitness have been improved {} during this iteration.\n".format(delta))
+        log.close()
         print("The fitness have been improved {} during this iteration.\n".format(delta))
     print("Total cost {} itearations.".format(iters))
-    log.close()

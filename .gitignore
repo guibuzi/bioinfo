@@ -2,3 +2,5 @@
 .vscode
 
 mosaic/.vscode
+
+mosaic/__pycache__

@@ -174,7 +174,7 @@ if __name__ == "__main__":
     initlog.write("Generate %s populations.\n" % population_number)
     initlog.write("The size of populations is: %s.\n" % population_size)
     initlog.write("The epitope length is: %s\n" % epitope_length)
-    initlog.write("Raw epitope threshold is\n\n: %s" % raw_threshold)
+    initlog.write("Raw epitope threshold is: %s\n\n" % raw_threshold)
     initlog.write("Initial mosaic:\n")
     for mm in init_mosaic:
         initlog.write(mm + "\n")
@@ -229,16 +229,16 @@ if __name__ == "__main__":
                         mosaic.pop(i)
                         mosaic.insert(i, child)
                         coverage = child_score
-                        print("Update {} to mosaic {}.".format(child, i))
+                        print("\nUpdate {} to mosaic {}.".format(child, i))
                         #pprint("Current mosaic: ")
                         #pprint(mosaic)
-                        print("Current coverage: {}".format(coverage))
+                        print("Current coverage: {}\n".format(coverage))
                 else:
                     #print("Reject due to raw epitope")
                     pass
 
         if iters % 100 == 0:
-            log.write("After %s iterations, the current mosaic is:\n")
+            log.write("After %s iterations, the current mosaic is:\n" % iters)
             for mm in mosaic:
                 log.write(mm + "\n")
             log.write("The current coverage is: %s\n\n" % coverage)
@@ -272,4 +272,4 @@ if __name__ == "__main__":
 
     plt.title("Coverage (%) v.s. iteration")
     plt.plot(coverage_list)
-    plt.savefig("/home/zeng/Desktop/coverage_history.jpg")
+    plt.savefig("/home/zeng/Desktop/coverage_history_{}.jpg".format(paramters[3]))

@@ -1,7 +1,7 @@
 import re
 import matplotlib.pyplot as plt
 
-with open("/home/zeng/Desktop/log_h3n2_na.log") as f:
+with open("/home/zeng/Desktop/log_test.log") as f:
     contents = f.read()
 
 regex = re.compile("After this iteration current coverage is: .*")

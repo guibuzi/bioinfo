@@ -25,23 +25,23 @@ def find_crossover_point(seq1, seq2):
     strings_of_seq1 = set([seq1[i:i+8] for i in range(len1-8)])
     strings_of_seq2 = set([seq2[i:i+8] for i in range(len2-8)])
     common_strings = strings_of_seq1.intersection(strings_of_seq2)
-
-    crossover1 = common_strings.pop()
-    crossover2 = common_strings.pop()
-    m1_1 = re.finditer(crossover1, seq1)
-    m1_2 = re.finditer(crossover2, seq1)
-    m2_1 = re.finditer(crossover1, seq2)
-    m2_2 = re.finditer(crossover2, seq2)
-    locations_crossover1_1 = [m1_i.start() for m1_i in m1_1]
-    locations_crossover1_2 = [m2_i.start() for m2_i in m1_2]
-    locations_crossover2_1 = [m1_i.start() for m1_i in m2_1]
-    locations_crossover2_2 = [m2_i.start() for m2_i in m2_2]
-    index_1_1 = random.choice(locations_crossover1_1)
-    index_1_2 = random.choice(locations_crossover1_2)
-    index_2_1 = random.choice(locations_crossover2_1)
-    index_2_2 = random.choice(locations_crossover2_2)
-    offset = random.randint(0,7)
-    return (index_1_1+offset, index_1_2+offset, index_2_1+offset, index_2_2+offset)
+    if common_strings:
+        crossover1 = common_strings.pop()
+        crossover2 = common_strings.pop()
+        m1_1 = re.finditer(crossover1, seq1)
+        m1_2 = re.finditer(crossover2, seq1)
+        m2_1 = re.finditer(crossover1, seq2)
+        m2_2 = re.finditer(crossover2, seq2)
+        locations_crossover1_1 = [m1_i.start() for m1_i in m1_1]
+        locations_crossover1_2 = [m2_i.start() for m2_i in m1_2]
+        locations_crossover2_1 = [m1_i.start() for m1_i in m2_1]
+        locations_crossover2_2 = [m2_i.start() for m2_i in m2_2]
+        index_1_1 = random.choice(locations_crossover1_1)
+        index_1_2 = random.choice(locations_crossover1_2)
+        index_2_1 = random.choice(locations_crossover2_1)
+        index_2_2 = random.choice(locations_crossover2_2)
+        offset = random.randint(0,7)
+        return (index_1_1+offset, index_1_2+offset, index_2_1+offset, index_2_2+offset)
 
 
 def recombine(seq1, seq2, location):
@@ -55,7 +55,7 @@ def recombine(seq1, seq2, location):
     return (seq1_1+seq2_2+seq1_3, seq2_1+seq1_2+seq2_3)
 
 
-def generate_population(seq_list, k=4, n=1000):
+def generate_population(seq_list, k, n):
     """
     seq_list: input nature sequences
     k: number of populations
@@ -64,13 +64,18 @@ def generate_population(seq_list, k=4, n=1000):
     populations = []
     for _ in range(k):
         population_i = []
-        for _ in range(n):
+        popu_size = 0
+        while popu_size < n:
             seq1 = random.choice(seq_list)
             seq2 = random.choice(seq_list)
             locations = find_crossover_point(seq1, seq2)
-            child1, child2 = recombine(seq1, seq2, locations)
-            population_i.append(child1)
-            population_i.append(child2)
+            if locations:
+                child1, child2 = recombine(seq1, seq2, locations)
+                population_i.append(child1)
+                population_i.append(child2)
+                popu_size += 1
+            else:
+                continue
         populations.append(population_i)
     return populations
 
@@ -109,7 +114,7 @@ def generate_one_parent(popu_i, k):
     return seq
 
 
-def if_raw_epitope(children,):
+def if_raw_epitope(children):
     want = []
     for child in children:
         child_epitope = set([child[i:i+9] for i in range(len(child)-epitope_length)])
@@ -130,12 +135,9 @@ def generate_child(popu_i, i):
 
 
 
-
-
-
 if __name__ == "__main__":
     paramters = sys.argv
-    paramters = ["","all_h3.fasta", "logtest.txt"]
+#    paramters = ["","all_h3.fasta", "logtest.txt"]
     epitope_length = 9
     raw_threshold = 3
     population_number = 4
@@ -144,33 +146,36 @@ if __name__ == "__main__":
     # 读入序列 并产生天然表位
     data = read_fasta("/home/zeng/python_work/bioinfo/mosaic/{}".format(paramters[1]))
     seq_list = list(set(data.values()))
-
-    print("There are {} no redundant sequences in the input file.\n".format(len(seq_list)))
-    print("Generate %s populations." % population_number)
-    print("The size of populations is: %s.\n\n" % population_size)
-
     epitope_nature = [seq[i:i+epitope_length] for seq in seq_list for i in range(len(seq)-epitope_length)]
     test_set = epitope_nature
-    # test_set = [[seq[i:i+epitope_length] for i in range(len(seq)-epitope_length)]
-    #                                      for seq in seq_list]
-#    nr_epitope_nature = set(epitope_nature)
-    # epitope_count = Counter(epitope_nature)
-    # no_raw_epitope = {k for k, v in epitope_count.items() if v > raw_threshold}   # 超参数 raw number
+    # test_set = [[seq[i:i+epitope_length] for i in range(len(seq)-epitope_length)] for seq in seq_list]
+    # nr_epitope_nature = set(epitope_nature)
+    epitope_count = Counter(epitope_nature)
+    no_raw_epitope = {k for k, v in epitope_count.items() if v > raw_threshold}   # 超参数 raw number
 
-    # 设置种群数 并产生种群 初始 mosaic
-    popus = generate_population(seq_list, k=population_number, n=population_size)
+    # 产生种群 初始 mosaic
+    popus = generate_population(seq_list, population_number, population_size)
     init_mosaic = [random.choice(popus[i]) for i in range(population_number)]
     init_coverage = cal_coverage(init_mosaic, test_set)
 
+
+    print("There are {} no redundant sequences in the input file.".format(len(seq_list)))
+    print("Generate %s populations." % population_number)
+    print("The size of populations is: %s." % population_size)
     print("The epitope length is: %s" % epitope_length)
-    print("Raw epitope threshold is: %s" % raw_threshold)
+    print("Raw epitope threshold is: %s\n" % raw_threshold)
     print("Initial mosaic: ")
     for mm in init_mosaic:
         print(mm)
     print("Initial coverage: {}\n\n".format(init_coverage))
 
     initlog = open("/home/zeng/Desktop/{}".format(paramters[2]), "w")
-    initlog.write("Initial mosaic: \n")
+    initlog.write("There are {} no redundant sequences in the input file.\n".format(len(seq_list)))
+    initlog.write("Generate %s populations.\n" % population_number)
+    initlog.write("The size of populations is: %s.\n" % population_size)
+    initlog.write("The epitope length is: %s\n" % epitope_length)
+    initlog.write("Raw epitope threshold is\n\n: %s" % raw_threshold)
+    initlog.write("Initial mosaic:\n")
     for mm in init_mosaic:
         initlog.write(mm + "\n")
     initlog.write("\nInitial coverage: {}\n\n".format(init_coverage))
@@ -187,14 +192,13 @@ if __name__ == "__main__":
     coverage_list = [coverage]
     while True:  # 无限迭代
         log = open("/home/zeng/Desktop/{}".format(paramters[2]), "a")
-        log.write("\nIteration {}...\n".format(iters))
         print("Iteration {}...\n".format(iters))
         old_coverage = coverage
 
         # 每一轮迭代中 依次迭代种群
         for i, popu_i in enumerate(popus):
             count = 0
-            print("\nStart iterate {} population.".format(i))
+            print("Start iterate {} population.".format(i))
             # 每个种群内部 产生 10 个子代后进入下一种群
             while count < 10:
                 # if count == 0:
@@ -225,23 +229,23 @@ if __name__ == "__main__":
                         mosaic.pop(i)
                         mosaic.insert(i, child)
                         coverage = child_score
-                        log.write("Update {} to mosaic {}.\n".format(child, i))
                         print("Update {} to mosaic {}.".format(child, i))
                         #pprint("Current mosaic: ")
                         #pprint(mosaic)
-                        log.write("Current coverage: {}\n".format(coverage))
                         print("Current coverage: {}".format(coverage))
                 else:
                     #print("Reject due to raw epitope")
                     pass
 
+        if iters % 100 == 0:
+            log.write("After %s iterations, the current mosaic is:\n")
+            for mm in mosaic:
+                log.write(mm + "\n")
+            log.write("The current coverage is: %s\n\n" % coverage)
 
         delta = coverage - old_coverage
         iters += 1
         coverage_list.append(coverage)
-        log.write("After this iteration current coverage is: {}.\n".format(coverage))
-        log.write("The fitness have been improved {} during this iteration.\n".format(delta))
-        log.close()
         print("\nAfter this iteration current coverage is: {}.".format(coverage))
         print("The fitness have been improved {} during this iteration.\n".format(delta))
 
@@ -263,6 +267,8 @@ if __name__ == "__main__":
             for mm in mosaic:
                 print(mm)
             break
+
+        log.close()
 
     plt.title("Coverage (%) v.s. iteration")
     plt.plot(coverage_list)

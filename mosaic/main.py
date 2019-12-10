@@ -25,7 +25,7 @@ def find_crossover_point(seq1, seq2):
     strings_of_seq1 = set([seq1[i:i+8] for i in range(len1-8)])
     strings_of_seq2 = set([seq2[i:i+8] for i in range(len2-8)])
     common_strings = strings_of_seq1.intersection(strings_of_seq2)
-    if common_strings:
+    if len(common_strings) >= 2:
         crossover1 = common_strings.pop()
         crossover2 = common_strings.pop()
         m1_1 = re.finditer(crossover1, seq1)
@@ -262,7 +262,7 @@ if __name__ == "__main__":
                 print("\nRestart populations...\n\n")
 
         if iters == 100000 or count_restart_without_improve >= 50:
-            print("\n\nTotal cost {} itearations.".format(iters))
+            print("\nTotal cost {} itearations.".format(iters))
             print("Finanl mosaic:")
             for mm in mosaic:
                 print(mm)

@@ -80,17 +80,17 @@ def generate_population(seq_list, k, n):
     return populations
 
 
-def cal_coverage(to_cal, test_set):
+def cal_coverage(to_cal):
     """
     to_cal: the mosaic to evaluate (list of sequences)
     test_set: nature epitope (list of epitope list)
     return: the coverage of input mosaic
     """
     epitope_mosaic = set([seq[i:i+epitope_length] for seq in to_cal for i in range(len(seq)-epitope_length)])
-    covers = [epi for epi in epitope_nature if epi in epitope_mosaic]
-    return len(covers) / len(epitope_nature)
+    covers = [epitope_count.get(epi, 0) for epi in epitope_mosaic]
+    return sum(covers) / num_epitope_nature
 
-def cal_fitness(to_cal, mosaic, test_set, k):
+def cal_fitness(to_cal, mosaic, k):
     """
     to_cal: the sequence to calculate (string)
     mosaic: current mosaic (list of sequences)
@@ -101,15 +101,15 @@ def cal_fitness(to_cal, mosaic, test_set, k):
     tmp = mosaic[:]
     tmp.pop(k)
     tmp.insert(k,to_cal)
-    fitness = cal_coverage(tmp, test_set)
+    fitness = cal_coverage(tmp)
     return fitness
 
 
 def generate_one_parent(popu_i, k):
     seq1 = random.choice(popu_i)
     seq2 = random.choice(popu_i)
-    fitness1 = cal_fitness(seq1, mosaic, test_set, k)
-    fitness2 = cal_fitness(seq2, mosaic, test_set, k)
+    fitness1 = cal_fitness(seq1, mosaic, k)
+    fitness2 = cal_fitness(seq2, mosaic, k)
     seq = seq1 if fitness1 >= fitness2 else seq2
     return seq
 
@@ -130,14 +130,17 @@ def generate_child(popu_i, i):
     #print("parent2: ", parent_2)
     crossover_locations = find_crossover_point(parent_1, parent_2)
     #print("\ncrossover locations:", crossover_locations, "\n")
-    children = recombine(parent_1, parent_2, crossover_locations)
-    return children
+    if crossover_locations:
+        children = recombine(parent_1, parent_2, crossover_locations)
+        return children
+    else:
+        return generate_child(popu_i, i)
 
 
 
 if __name__ == "__main__":
     paramters = sys.argv
-#    paramters = ["","all_h3.fasta", "logtest.txt"]
+    # paramters = ["","all_h3.fasta", "logtest.txt", "test"]
     epitope_length = 9
     raw_threshold = 3
     population_number = 4
@@ -146,20 +149,19 @@ if __name__ == "__main__":
     # 读入序列 并产生天然表位
     data = read_fasta("/home/zeng/python_work/bioinfo/mosaic/{}".format(paramters[1]))
     seq_list = list(set(data.values()))
+    num_nature_seqs = len(seq_list)
     epitope_nature = [seq[i:i+epitope_length] for seq in seq_list for i in range(len(seq)-epitope_length)]
-    test_set = epitope_nature
-    # test_set = [[seq[i:i+epitope_length] for i in range(len(seq)-epitope_length)] for seq in seq_list]
-    # nr_epitope_nature = set(epitope_nature)
+    num_epitope_nature = len(epitope_nature)
     epitope_count = Counter(epitope_nature)
     no_raw_epitope = {k for k, v in epitope_count.items() if v > raw_threshold}   # 超参数 raw number
 
     # 产生种群 初始 mosaic
     popus = generate_population(seq_list, population_number, population_size)
     init_mosaic = [random.choice(popus[i]) for i in range(population_number)]
-    init_coverage = cal_coverage(init_mosaic, test_set)
+    init_coverage = cal_coverage(init_mosaic)
 
 
-    print("There are {} no redundant sequences in the input file.".format(len(seq_list)))
+    print("There are {} no redundant sequences in the input file.".format(num_nature_seqs))
     print("Generate %s populations." % population_number)
     print("The size of populations is: %s." % population_size)
     print("The epitope length is: %s" % epitope_length)
@@ -170,7 +172,7 @@ if __name__ == "__main__":
     print("Initial coverage: {}\n\n".format(init_coverage))
 
     initlog = open("/home/zeng/Desktop/{}".format(paramters[2]), "w")
-    initlog.write("There are {} no redundant sequences in the input file.\n".format(len(seq_list)))
+    initlog.write("There are {} no redundant sequences in the input file.\n".format(num_nature_seqs))
     initlog.write("Generate %s populations.\n" % population_number)
     initlog.write("The size of populations is: %s.\n" % population_size)
     initlog.write("The epitope length is: %s\n" % epitope_length)
@@ -208,10 +210,10 @@ if __name__ == "__main__":
                 count += 1
                 if no_raw_children:
                     child = random.choice(no_raw_children)
-                    child_score = cal_fitness(child, mosaic, test_set, i)
+                    child_score = cal_fitness(child, mosaic, i)
                     to_compare_index = random.sample(list(range(len(popu_i))), 4)
                     to_compare = [popu_i[i] for i in to_compare_index]
-                    to_compare_score = [cal_fitness(seq, mosaic, test_set, i) for seq in to_compare]
+                    to_compare_score = [cal_fitness(seq, mosaic, i) for seq in to_compare]
                     #print("child: ", child)
                     #print("child fitness: ", child_score)
                     #print("\nrandom selected 4 sequences's fitness:")
@@ -254,7 +256,7 @@ if __name__ == "__main__":
             count_0 += 1
             if count_0 > 50:
                 count_0 = 0
-                popus = generate_population(seq_list, population_number, len(seq_list))
+                popus = generate_population(seq_list, population_number, population_size)
                 delta_between_restart = coverage - old_restart_coverage
                 old_restart_coverage = coverage
                 if delta_between_restart == 0:

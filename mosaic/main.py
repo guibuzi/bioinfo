@@ -263,7 +263,7 @@ if __name__ == "__main__":
                     count_restart_without_improve += 1
                 print("\nRestart populations...\n\n")
 
-        if iters == 100000 or count_restart_without_improve >= 50:
+        if iters == 1000000 or count_restart_without_improve >= 500:
             print("\nTotal cost {} itearations.".format(iters))
             print("Finanl mosaic:")
             for mm in mosaic:

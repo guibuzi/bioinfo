@@ -1,4 +1,4 @@
-import sys
+import sys, argparse
 import re
 import random
 from collections import Counter
@@ -139,15 +139,33 @@ def generate_child(popu_i, i):
 
 
 if __name__ == "__main__":
-    paramters = sys.argv
+    # paramters = sys.argv
+    # in_file = paramters[1]
+    # log_file = paramters[2]
+    # coverage_his_pic = paramters[3]
     # paramters = ["","all_h3.fasta", "logtest.txt", "test"]
-    epitope_length = 9
-    raw_threshold = 3
-    population_number = 4
-    population_size = 500
+
+    parser = argparse.ArgumentParser(description='Paramters Description')
+    parser.add_argument('--in_file', '-i', help='in_file 属性，必要参数', required=True)
+    parser.add_argument('--log', '-l', help='log 属性，必要参数，但是有默认值', required=True)
+    parser.add_argument('--history', '-his', help='history 属性，必要参数', required=True)
+    parser.add_argument('--epitope_length', '-e', help='epitope_length 属性，必要参数，但是有默认值', default=9)
+    parser.add_argument('--raw_threshold', '-r', help='raw_threshold 属性，必要参数，但是有默认值', default=3)
+    parser.add_argument('--population_number', '-n', help='population_number 属性，必要参数，但是有默认值', default=4)
+    parser.add_argument('--population_size', '-s', help='population_size 属性，必要参数，但是有默认值', default=500)
+    args = parser.parse_args()
+
+    in_file = args.in_file
+    log_file = args.log
+    coverage_his_pic = args.history
+
+    epitope_length = int(args.epitope_length)
+    raw_threshold = int(args.raw_threshold)
+    population_number = int(args.population_number)
+    population_size = int(args.population_size)
 
     # 读入序列 并产生天然表位
-    data = read_fasta("/home/zeng/python_work/bioinfo/mosaic/{}".format(paramters[1]))
+    data = read_fasta("/home/zeng/python_work/bioinfo/mosaic/{}".format(in_file))
     seq_list = list(set(data.values()))
     num_nature_seqs = len(seq_list)
     epitope_nature = [seq[i:i+epitope_length] for seq in seq_list for i in range(len(seq)-epitope_length)]
@@ -171,7 +189,7 @@ if __name__ == "__main__":
         print(mm)
     print("Initial coverage: {}\n\n".format(init_coverage))
 
-    initlog = open("/home/zeng/Desktop/{}".format(paramters[2]), "w")
+    initlog = open("/home/zeng/Desktop/{}".format(log_file), "w")
     initlog.write("There are {} no redundant sequences in the input file.\n".format(num_nature_seqs))
     initlog.write("Generate %s populations.\n" % population_number)
     initlog.write("The size of populations is: %s.\n" % population_size)
@@ -193,7 +211,7 @@ if __name__ == "__main__":
     count_restart_without_improve = 0
     coverage_list = [coverage]
     while True:  # 无限迭代
-        log = open("/home/zeng/Desktop/{}".format(paramters[2]), "a")
+        log = open("/home/zeng/Desktop/{}".format(log_file), "a")
         print("Iteration {}...\n".format(iters))
         old_coverage = coverage
 
@@ -274,4 +292,4 @@ if __name__ == "__main__":
 
     plt.title("Coverage (%) v.s. iteration")
     plt.plot(coverage_list)
-    plt.savefig("/home/zeng/Desktop/coverage_history_{}.jpg".format(paramters[3]))
+    plt.savefig("/home/zeng/Desktop/coverage_history_{}.jpg".format(coverage_his_pic))

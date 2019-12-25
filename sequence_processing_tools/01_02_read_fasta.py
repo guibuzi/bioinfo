@@ -88,7 +88,9 @@ if __name__ == "__main__":
     old_entry = update_fasta("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/Protein/protein_file (8).fasta", old_entry)
     old_entry = update_fasta("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/Protein/protein_file (9).fasta", old_entry)
     old_entry = update_fasta("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/Protein/gisaid_epiflu_sequence.fasta", old_entry)
+    old_entry = update_fasta("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/Protein/gisaid_epiflu_sequence2.fasta", old_entry)
+    old_entry = update_fasta("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/Protein/gisaid_epiflu_sequence3.fasta", old_entry)
 
     # when finish read all the new isolations, re-write the json file
     with open("/home/zeng/INFLUENZA_DATABASE/H3N2/data/Protein/segment_id.txt", "w") as f:
-        f.writelines(list(old_entry))
+        f.writelines("\n".join(list(old_entry)))

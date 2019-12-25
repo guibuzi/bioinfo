@@ -52,17 +52,21 @@ if __name__ == "__main__":
 
     # change this line when add new isolation
     # you can add new isolations from multiple csv file
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (1).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (2).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (3).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (4).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (5).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (6).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (7).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (8).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (9).csv", old_database)
-    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/gisaid_epiflu_isolates.csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (1).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (2).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (3).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (4).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (5).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (6).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (7).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (8).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/ioslate_file (9).csv", old_database)
+    # old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/gisaid_epiflu_isolates.csv", old_database)
 
+    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/gisaid_epiflu_isolates2.csv", old_database)
+    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/gisaid_epiflu_isolates3.csv", old_database)
+    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/gisaid_epiflu_isolates4.csv", old_database)
+    old_database = update_database("/home/zeng/INFLUENZA_DATABASE/H3N2/data/original/ISL_info/gisaid_epiflu_isolates5.csv", old_database)
     # when finish read all the new isolations, re-write the json file
     json_file = json.dumps(old_database, sort_keys=False, indent=4, separators=(',', ': '))
     with open("/home/zeng/INFLUENZA_DATABASE/H3N2/data/isolation_information.json", 'w') as g:

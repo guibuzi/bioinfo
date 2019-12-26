@@ -1,19 +1,25 @@
-import os
+import os, sys
 
 def merge_file(path, segment):
     file_list = os.listdir(path)
-    file_list = [x for x in file_list if x.startswith('align')]
+    file_list = [x for x in file_list]
 
-    file_number = len(file_list)
-
-    fw = open(path + "all_alignment_{}.fasta".format(segment), "w")
-    for i in range(file_number):
-        fr = open(path + "align_{}.fasts".format(i))
-        print(fr.name + "is adding to alignment_{}.fasta ......".format(segment))
+    fw = open(path + "{}.fasta".format(segment), "w")
+    for i in file_list:
+        fr = open(path + i)
+        print(fr.name + "is adding to {}.fasta ......".format(segment))
         fw.write(fr.read())
         print(fr.name + "finishing adding!")
         fr.close()
     fw.close()
 
-merge_file("/home/zeng/Desktop/no_redundant_h3/", 'h3')
+
+
+if __name__ == "__main__":
+    path1 = "/home/zeng/Desktop/reassortment_analysis/out_align/USA/"
+    path2 = "/home/zeng/Desktop/reassortment_analysis/out_align/USA/"
+    segments = os.listdir(path1)
+    for segment in segments:
+        sub_path = path1 + segment + "/"
+        merge_file(sub_path, segment)
 

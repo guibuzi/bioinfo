@@ -9,26 +9,34 @@ def build_tree(file_i, file_o):
 
 
 if __name__ == "__main__":
-    path = "/home/zeng/Desktop/reassortment_analysis/align/"
-    path2 = path + "tree/"
+    path = "/home/zeng/Desktop/sample2/align/"
+    path2 = "/home/zeng/Desktop/sample2/align/tree/"
+
+    os.system("rm -rf /home/zeng/Desktop/sample2/align/tree/")
 
     to_tree = []
     out_tree = []
 
-    task_dirs = os.listdir(path)
-    for task_dir in task_dirs:
-        sub_path = path + task_dir + "/"
-        sub_path2 = path2 + task_dir + "/"
-        os.makedirs(path2 + task_dir, exist_ok=True)
-        tasks = os.listdir(sub_path)
-        segments = [i.split(".")[0] for i in tasks]
+    # task_dirs = os.listdir(path)
+    # for task_dir in task_dirs:
+    #     sub_path = path + task_dir + "/"
+    #     sub_path2 = path2 + task_dir + "/"
+    #     os.makedirs(path2 + task_dir, exist_ok=True)
+    #     tasks = os.listdir(sub_path)
+    #     segments = [i.split(".")[0] for i in tasks]
 
-        for task, segment in zip(tasks, segments):
-            file_i = os.path.join(sub_path, task)
-            file_o = sub_path2 + segment + ".tree"
-            to_tree.append(file_i)
-            out_tree.append(file_o)
+    #     for task, segment in zip(tasks, segments):
+    #         file_i = os.path.join(sub_path, task)
+    #         file_o = sub_path2 + segment + ".tree"
+    #         to_tree.append(file_i)
+    #         out_tree.append(file_o)
     
+    for task in os.listdir(path):
+        to_tree.append(os.path.join(path, task))
+        out_tree.append(os.path.join(path2, task.replace("fasta", "tree")))
+
+    os.makedirs("/home/zeng/Desktop/sample2/align/tree/")
+#    print(to_tree, out_tree, sep='\n')
     
     pool = Pool(processes = 10)
     print("Begin tasks ...")

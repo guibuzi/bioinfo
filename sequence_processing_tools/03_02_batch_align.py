@@ -2,18 +2,25 @@ import sys, os
 import multiprocessing
 
 
-def split_file(to_split, out_split, limit=4000):
+def split_file(to_split, limit=4000):
+    file_path, file_name = os.path.split(to_split)
+    file_name = file_name.split(".")[0]
+    out_path = file_path + "/split_" + file_name
+    os.makedirs(out_path)
+
     file_count = 0
     url_list = []
-    
+
+
     with open(to_split) as f:
         for line in f:
             url_list.append(line)
             if len(url_list) < limit:
                 continue
-            # æ•°æ�®è¾¾åˆ°LIMIT
-            file_name = str(file_count)+ ".fasta"
-            with open(out_split + "/" + file_name, 'w') as file:
+            
+            new_file_name = str(file_count) + ".fasta"
+            new_file_path = os.path.join(out_path, new_file_name)
+            with open(new_file_path, 'w') as file:
                 for url in url_list[:-1]:
                     #print(url)
                     file.write(url)
@@ -21,10 +28,14 @@ def split_file(to_split, out_split, limit=4000):
             url_list = []
             file_count += 1
         if url_list:
-            file_name=str(file_count) + ".fasta"
-            with open(out_split + "/" + file_name, 'w') as file:
+            file_name = str(file_count) + ".fasta"
+            with open(os.path.join(out_path, file_name), 'w') as file:
                 for url in url_list:
                     file.write(url)
+
+
+
+
 
 
 if __name__ == "__main__":

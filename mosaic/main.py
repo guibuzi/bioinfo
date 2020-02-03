@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys, argparse
 import re
 import random
@@ -22,8 +24,8 @@ def read_fasta(path):
 def find_crossover_point(seq1, seq2):
     len1 = len(seq1)
     len2 = len(seq2)
-    strings_of_seq1 = set([seq1[i:i+8] for i in range(len1-8)])
-    strings_of_seq2 = set([seq2[i:i+8] for i in range(len2-8)])
+    strings_of_seq1 = set([seq1[i:i+8] for i in range(len1-7)])
+    strings_of_seq2 = set([seq2[i:i+8] for i in range(len2-7)])
     common_strings = strings_of_seq1.intersection(strings_of_seq2)
     if len(common_strings) >= 2:
         crossover1 = common_strings.pop()
@@ -86,9 +88,10 @@ def cal_coverage(to_cal):
     test_set: nature epitope (list of epitope list)
     return: the coverage of input mosaic
     """
-    epitope_mosaic = set([seq[i:i+epitope_length] for seq in to_cal for i in range(len(seq)-epitope_length)])
+    epitope_mosaic = set([seq[i:i+epitope_length] for seq in to_cal for i in range(len(seq) + 1 - epitope_length)])
     covers = [epitope_count.get(epi, 0) for epi in epitope_mosaic]
     return sum(covers) / num_epitope_nature
+
 
 def cal_fitness(to_cal, mosaic, k):
     """
@@ -117,15 +120,18 @@ def generate_one_parent(popu_i, k):
 def if_raw_epitope(children):
     want = []
     for child in children:
-        child_epitope = set([child[i:i+9] for i in range(len(child)-epitope_length)])
+        child_epitope = set([child[i:i+9] for i in range(len(child)+1-epitope_length)])
         if child_epitope.issubset(no_raw_epitope):
             want.append(child)
     return want
 
 
-def generate_child(popu_i, i):
+def generate_child(popu_i, i, inter_crossover_prob=0.5):
     parent_1 = generate_one_parent(popu_i, i)
-    parent_2 = generate_one_parent(popu_i, i)  # to do: random selection from nature sequences
+    if random.random() < inter_crossover_prob:
+        parent_2 = generate_one_parent(popu_i, i)  # to do: random selection from nature sequences
+    else:
+        parent_2 = random.choice((popu_i))
     #print("parent1: ", parent_1)
     #print("parent2: ", parent_2)
     crossover_locations = find_crossover_point(parent_1, parent_2)
@@ -146,10 +152,11 @@ if __name__ == "__main__":
     # paramters = ["","all_h3.fasta", "logtest.txt", "test"]
 
     parser = argparse.ArgumentParser(description='Paramters Description')
-    parser.add_argument('--in_file', '-i', help='in_file 属性，必要参数', required=True)
-    parser.add_argument('--log', '-l', help='log 属性，必要参数，但是有默认值', required=True)
-    parser.add_argument('--history', '-his', help='history 属性，必要参数', required=True)
-    parser.add_argument('--epitope_length', '-e', help='epitope_length 属性，必要参数，但是有默认值', default=9)
+    parser.add_argument('--in_file', '-i', help='输入序列，FASTA格式 必要参数', required=True)
+    parser.add_argument('--log', '-l', help='日志 必要参数，但是有默认值', required=True)
+    parser.add_argument('--history', '-his', help='迭代图，必要参数', required=True)
+    parser.add_argument('--inter_crossover_prob', '-icp', help='重组概率 属性，必要参数', default=0.5)
+    parser.add_argument('--epitope_length', '-e', help='表位长度 属性，必要参数，但是有默认值', default=9)
     parser.add_argument('--raw_threshold', '-r', help='raw_threshold 属性，必要参数，但是有默认值', default=3)
     parser.add_argument('--population_number', '-n', help='population_number 属性，必要参数，但是有默认值', default=4)
     parser.add_argument('--population_size', '-s', help='population_size 属性，必要参数，但是有默认值', default=500)
@@ -161,6 +168,7 @@ if __name__ == "__main__":
 
     epitope_length = int(args.epitope_length)
     raw_threshold = int(args.raw_threshold)
+    inter_crossover_prob = int(args.inter_crossover_prob)
     population_number = int(args.population_number)
     population_size = int(args.population_size)
 
@@ -263,9 +271,9 @@ if __name__ == "__main__":
                 log.write(mm + "\n")
             log.write("The current coverage is: %s\n\n" % coverage)
 
-        delta = coverage - old_coverage
         iters += 1
         coverage_list.append(coverage)
+        delta = coverage - old_coverage
         print("\nAfter this iteration current coverage is: {}.".format(coverage))
         print("The fitness have been improved {} during this iteration.\n".format(delta))
 

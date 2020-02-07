@@ -16,7 +16,7 @@ def read_seq(_in):
 path = '/Users/jinfeng/Downloads/test.seq'
 size = 9
 
-_, sequences = read_seq(path)
+_, sequences2 = read_seq(path)
 
 def get_k_mers(_in):
     k_mers = []
@@ -33,6 +33,7 @@ def get_all_k_mers(_in):
             cout_all[k] += v
     return cout_all
 
+sequences = sequences2
 
 count_of_all_kmers = get_all_k_mers(sequences)
 n_unique_kmers = len(count_of_all_kmers)
@@ -70,15 +71,15 @@ to_evaluate = [
 
 kmers_of_query = get_all_k_mers(to_evaluate)
 n_unique_kmers_in_query = len(kmers_of_query)
-n_kmers_in_query = sum(list(kmers_of_query.values()))
+# n_kmers_in_query = sum(list(kmers_of_query.values()))
 
 print("# of query sequences: ", len(to_evaluate))
 print("# of unique kmers: ", n_unique_kmers_in_query)
-print("# of all kmers: ", n_kmers_in_query)
+# print("# of all kmers: ", n_kmers_in_query)
 
 score = 0
 score_list = []
-for kmer in kmers_of_query:
+for kmer in kmers_of_query.keys():
     score_list.append(count_of_all_kmers.get(kmer, 0))
     score += count_of_all_kmers.get(kmer, 0)
 
@@ -89,5 +90,5 @@ print("score of query: ", score)
 
 print(score / n_kmers)
 print(score / n_kmers_no_rare)
-print()
+print(n_unique_kmers_in_query / n_unique_kmers)
 print(n_unique_kmers_in_query / n_unique_kmers_no_rare)

@@ -65,7 +65,7 @@ class Blastor():
         self.blastdb = _blastdb
 
     def blastn(self, quiet=False):
-        command = "blastn -query %s -db %s -task blastn -outfmt '6 qseqid sseqid pident sstart send length' -num_alignments 5" % (self.query, self.blastdb)
+        command = "blastn -query %s -db %s -task blastn -outfmt '6 qseqid sseqid pident sstart send length' -num_alignments 10" % (self.query, self.blastdb)
         result = os.popen(command)  
         res = result.read()
         if not quiet:
@@ -78,7 +78,7 @@ class Blastor():
     def extract_result(self, quiet=False):
         res_blast = self.blastn(quiet=quiet)
         if res_blast:
-            return res_blast.split('\n')[0].split('\t')
+            return [i for i in res_blast.split('\n')[:1] if i]
 
 
 class Leaderboard():
@@ -94,13 +94,14 @@ def read_log(_in):
     pends = []
     with open(_in) as f:
         for line in f:
-            row = line.split('\t')
-            attrs = row[1].split("|")
-            sacs.append(attrs[0])
-            snames.append(attrs[1])
-            pidents.append(float(row[2]))
-            pstarts.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[0]))
-            pends.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[1]))
+            if line.startswith('segment'):
+                row = line.split('\t')
+                attrs = row[1].split("|")
+                sacs.append(attrs[0])
+                snames.append(attrs[1])
+                pidents.append(float(row[2]))
+                pstarts.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[0]))
+                pends.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[1]))
     return sacs, snames, pidents, pstarts, pends 
 
 
@@ -189,9 +190,10 @@ def main():
     with open(os.path.join(current_path, 'log-%s' % task), 'a') as f:
         for _ in range(iter_nums):
             a = get_sseq_id()
-            results.append(a)
-            print('\t'.join(a))
-            f.write('\t'.join(a) + "\n")
+            results.extend(a)
+            for i in a:
+                print(i)
+                f.write(i + "\n")
     
     # qseqid sseqid pident sstart send length = list(zip(*results))
 

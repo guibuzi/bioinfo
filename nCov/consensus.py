@@ -87,13 +87,14 @@ def main(_in, fragment, len_of_seq=3822, window_size=25, offset=0):
         draw_arrow(e, -0.8)
         print(k, s, e)
 
-    fig.savefig('consesus-of-%s.jpg' % fragment)
+    fig.savefig('consesus-of-%s.jpg' % _path)
 
 
 if __name__ == '__main__':
-    _, _path, _fragment = sys.argv
+    _, _path, _fragment, window_size = sys.argv
+    window_size = int(window_size)
     # main('/home/zeng/python_work/bioinfo/nCov/task/log-s-4000-3-100', 's')
     # main('/home/zeng/python_work/bioinfo/nCov/task/log-e-4000-3-100', 'e')
     # main('/home/zeng/python_work/bioinfo/nCov/task/log-m-4000-3-100', 'm')
     # main('/home/zeng/python_work/bioinfo/nCov/task/log-n-4000-3-100', 'n')
-    main(_path, _fragment)
+    main(_path, _fragment, window_size=window_size)

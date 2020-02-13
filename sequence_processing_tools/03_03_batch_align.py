@@ -10,7 +10,7 @@ def muscle(_in, _out):
 
 def mafft(_in, _out):
     print("Begin to align %s" % os.path.split(_in)[1])
-    os.system("mafft --thread 6 --quiet %s > %s" % (_in, _out))
+    os.system("mafft --thread 8 --quiet %s > %s" % (_in, _out))
     print("Finsh align %s" % os.path.split(_in)[1])
 
 def generate_path(path, out_path):
@@ -55,5 +55,5 @@ if __name__ == "__main__":
 #    main("/home/zeng/Desktop/sample_europe", "/home/zeng/Desktop/sample_europe/align")
 #    main("/home/zeng/Desktop/sample_seasia", "/home/zeng/Desktop/sample_seasia/align")
 #    main("/home/zeng/Desktop/sample_usa", "/home/zeng/Desktop/sample_usa/align")
-
-    main2("/home/zeng/Desktop/COV/", "/home/zeng/Desktop/COV/align/")
+    _, _in, _out = sys.argv
+    main2(_in, _out)

@@ -1,22 +1,14 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
-=======
-# encoding: utf-8
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
 
 import sys, os
 import random
 import re
 import argparse
-<<<<<<< HEAD
 from collections import Counter
-=======
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 class RandomCut():
-<<<<<<< HEAD
     def __init__(self, in_file='', length=0, mode='all', seg_length='3-100'):
         self.full_sequence = self.read_sequence(in_file) # 读取序列
         self.full_length = len(self.full_sequence) # 序列长度
@@ -25,14 +17,6 @@ class RandomCut():
         self.sequence = self.full_sequence[self.range[0]-1: self.range[1]] # 切取序列
         self.length = len(self.sequence) # 子序列长度
         self.seg_length = self.extract_seg(seg_length) # 获取随机切片长度范围
-=======
-    def __init__(self, sequence='', length=0, mode='s', seg_length='3-100'):
-        self.sequence = sequence
-        self.length = length
-        self.mode = mode
-        self.range = self.mode_select(mode)
-        self.seg_length = self.extract_seg(seg_length)
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
     
     def __len__(self):
         return self.length
@@ -52,11 +36,8 @@ class RandomCut():
             return (28274, 29533)
         elif mode == 'orf1ab':
             return (266, 21555)
-<<<<<<< HEAD
         elif mode == 'all':
             return (1, self.full_length)
-=======
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
         else:
             return tuple(map(int, mode.split('-')))
 
@@ -65,14 +46,8 @@ class RandomCut():
         with open(_in) as f:
             for line in f:
                 if not line.startswith(">"):
-<<<<<<< HEAD
                     seq += line.replace("\n", "")     
         return seq
-=======
-                    seq += line.replace("\n", "")        
-        self.sequence = seq[self.range[0]: self.range[1]]
-        self.length = len(self.sequence)
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
 
     def random_cut(self):
         len_l, len_u = self.seg_length
@@ -82,20 +57,13 @@ class RandomCut():
         return (self.sequence[start: end], (start, end-1))
 
     def random_cut_write(self):
-<<<<<<< HEAD
         fragment, _range = self.random_cut()
         with open('fragment-%s.fasta' % self.mode, 'w') as f:
             query = ">fragment[%s..%s]\n%s\n" % (_range[0], _range[1], fragment)
-=======
-        segment, _range = self.random_cut()
-        with open('segment-%s.fasta' % self.mode, 'w') as f:
-            query = ">segment[%s..%s]\n%s\n" % (_range[0], _range[1], segment)
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
             f.write(query)
 
 
 class Blastor():
-<<<<<<< HEAD
     def __init__(self, _query, _blastdb, _mask='2697049'):
         self.query = _query
         self.blastdb = _blastdb
@@ -103,14 +71,6 @@ class Blastor():
 
     def blastn(self, quiet=False):
         command = "blastn -query %s -db %s -task blastn -negative_taxids %s -outfmt '6 qseqid saccver stitle pident sstart send length' -num_alignments 10" % (self.query, self.blastdb, self.mask)
-=======
-    def __init__(self, _query, _blastdb):
-        self.query = _query
-        self.blastdb = _blastdb
-
-    def blastn(self, quiet=False):
-        command = "blastn -query %s -db %s -task blastn -outfmt '6 qseqid sseqid pident sstart send length' -num_alignments 5" % (self.query, self.blastdb)
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
         result = os.popen(command)  
         res = result.read()
         if not quiet:
@@ -123,11 +83,7 @@ class Blastor():
     def extract_result(self, quiet=False):
         res_blast = self.blastn(quiet=quiet)
         if res_blast:
-<<<<<<< HEAD
             return res_blast.split('\n')[0]
-=======
-            return res_blast.split('\n')[0].split('\t')
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
 
 
 class Leaderboard():
@@ -143,7 +99,6 @@ def read_log(_in):
     pends = []
     with open(_in) as f:
         for line in f:
-<<<<<<< HEAD
             if line.startswith('segment'):
                 row = line.split('\t')
                 attrs = row[1].split("|")
@@ -152,15 +107,6 @@ def read_log(_in):
                 pidents.append(float(row[2]))
                 pstarts.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[0]))
                 pends.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[1]))
-=======
-            row = line.split('\t')
-            attrs = row[1].split("|")
-            sacs.append(attrs[0])
-            snames.append(attrs[1])
-            pidents.append(float(row[2]))
-            pstarts.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[0]))
-            pends.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[1]))
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
     return sacs, snames, pidents, pstarts, pends 
 
 
@@ -232,24 +178,14 @@ def path_proc():
 def main():
     current_path = path_proc()
 
-<<<<<<< HEAD
     nCOV = RandomCut(in_file=in_file, mode=mode, seg_length=seg_length)
     blastor = Blastor('fragment-%s.fasta' % mode, 'coronavrius/coronavrius', mask)
-=======
-    nCOV = RandomCut(mode=mode, seg_length=seg_length)
-    nCOV.read_sequence('%s' % in_file)
-    blastor = Blastor('segment-%s.fasta' % mode, '~/blastdb/coronavirus/all-cov')
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
 
     def get_sseq_id():
         nCOV.random_cut_write()
         ac_name_pident_s_e  = blastor.extract_result(quiet=True)
         if ac_name_pident_s_e:
-<<<<<<< HEAD
             return ac_name_pident_s_e.split("\t")
-=======
-            return ac_name_pident_s_e
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
         else:
             return get_sseq_id()
 
@@ -259,7 +195,6 @@ def main():
         for _ in range(iter_nums):
             a = get_sseq_id()
             results.append(a)
-<<<<<<< HEAD
             print("\t".join(a))
             f.write("\t".join(a) + "\n")
     
@@ -308,27 +243,6 @@ def main():
     plt.savefig(os.path.join(current_path, "result-of-%s.jpg" % task))
 
     #plot_colortable(cmap, "Color Table of %s" % task, emptycols=0)
-=======
-            print('\t'.join(a))
-            f.write('\t'.join(a) + "\n")
-    
-    # qseqid sseqid pident sstart send length = list(zip(*results))
-
-    sacs, snames, pidents, pstarts, pends = read_log(os.path.join(current_path, 'log-%s' % task))
-
-    color_sp = randomcolor(len(set(snames)))
-    cmap = {n: color_sp[i] for i, n in enumerate(set(snames))}
-    cmap['RaTG13'] = '#FF3030'
-
-    plt.figure(figsize=(16, 9))
-    for _, sname, pident, pstart, pend in zip(sacs, snames, pidents, pstarts, pends):
-        plt.hlines(pident, pstart, pend, label=sname, color=cmap[sname])
-    plt.ylabel('% Identity')
-    plt.title("%s gene" % mode.upper())
-    plt.savefig(os.path.join(current_path, "result-of-%s.jpg" % task))
-
-    plot_colortable(cmap, "Color Table of %s" % task, emptycols=0)
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4
 
 if __name__ == '__main__':
     params = sys.argv[1:]
@@ -337,19 +251,9 @@ if __name__ == '__main__':
     mode = params[2]
     iter_nums = int(params[3])
     seg_length = params[4]
-<<<<<<< HEAD
     mask = params[5]
 
 
     main()
 
     os.system('rm -rf fragment-*')
-=======
-
-    # tmp ='tmp1'
-    # log = 'log1'
-    # iter_nums = 1000
-    main()
-
-    os.system('rm -rf segment-*')
->>>>>>> 84a8d7806b5c8920d2a15619b8d7af61bf724ad4

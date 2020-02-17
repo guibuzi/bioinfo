@@ -72,7 +72,7 @@ def main():
     ax.set_xlim(offset, winners[-1][0]+offset)
     ax.set_ylim(-1, 1)
     ax.yaxis.set_visible(False)
-    ax.set_title('Recombination Analysis of %s Gene' % _fragment, loc='left', fontsize=16)
+    ax.set_title('Recombination Analysis of %s Gene, WindowSize: %s' % (_fragment, window_size), loc='left', fontsize=16)
     plt.legend(bbox_to_anchor=(1, 1))
 
     def draw_arrow(x, y):
@@ -85,12 +85,12 @@ def main():
                 draw_arrow(v[i-1], 0.8)
                 print(k, v[i-1])
 
-    fig.savefig('consesus-of-%s.jpg' % _fragment)
+    fig.savefig(_path.replace('log', 'consensus') + '.jpg')
 
 
 if __name__ == '__main__':
 #    _, _path, _fragment, window_size = sys.argv
-    _path, _fragment, window_size = "nCov/log-ratg13-all-3000", 'all', '50'
+    _path, _fragment, window_size = "nCov/log-wuhan-all-50000", 'all', '50'
     window_size = int(window_size)
     sequence_length = 30000
     offset=0

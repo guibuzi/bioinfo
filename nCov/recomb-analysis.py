@@ -229,7 +229,7 @@ def main():
     for sname, pident, qstart, qend in zip(stitles2, pidents, qstarts, qends):
         plt.hlines(pident, qstart, qend, label=sname, color=cmap[sname])
     plt.ylabel('% Identity')
-    plt.title("%s gene" % mode.upper())
+    plt.title("%s, Random Times: %s, Fragment length: %s" % (mode.upper(), iter_nums, seg_length))
 
     annoation_line_length = nCOV.length // 100 *2
     annoation_line_start = nCOV.length + 100
@@ -240,7 +240,7 @@ def main():
         plt.text(annoation_line_end+50 ,annoation_line_y-0.25, s[0], color=s[1])
 
 
-    plt.savefig(os.path.join(current_path, "result-of-%s.jpg" % task))
+    plt.savefig(os.path.join(current_path, "result-%s.jpg" % task))
 
     #plot_colortable(cmap, "Color Table of %s" % task, emptycols=0)
 

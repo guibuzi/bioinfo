@@ -35,6 +35,7 @@ class Blastor():
             result = self._blastn('1-%s' % self.query_len)
         else:
             result = self._blastn(query_loc)
+        print('The best alignment for %s is %s' % (query_loc, result.split("\n")[0].split("\t")))
         return result.split("\n")[0].split("\t")
 
     def window_blast(self, window_size=1000):
@@ -42,32 +43,32 @@ class Blastor():
         for i in range(1, self.query_len - window_size):
             query_loc = "%s-%s" % (i, i+window_size)
             result = self.one_blast(query_loc)
-            if result:
-                results.append(result)
-            else:
+            if result == ['']:
                 results.append([None]*11)
+            else:
+                results.append(result)
         return results
 
 
 if __name__ == "__main__":
-    # _, window_size = sys.argv
+    _, window_size = sys.argv
 
-    window_size = 100
+    #window_size = 100
     test = Blastor('/home/zeng/Desktop/2019-ncov.fasta', 'all-cov/all-cov', '/home/zeng/Desktop/2019-ncov.idlist')
 
     b = test.window_blast(window_size=int(window_size))
-    print(b)
-    # _, qstarts, qends, sseqids, staxids, saccs, stitles, snames, sstarts, sends, pidents = zip(*b)
+    #print(b)
+    _, qstarts, qends, sseqids, staxids, saccs, stitles, snames, sstarts, sends, pidents = zip(*b)
 
-    # results = defaultdict(list)
-    # for i, stitle in enumerate(stitles):
-    #     results[stitle].append(i)
+    results = defaultdict(list)
+    for i, stitle in enumerate(stitles):
+        results[stitle].append(i)
 
-    # fig, ax = plt.subplots(figsize=(16, 4))
-    # for k, v in results.items():
-    #     ax.scatter(np.array(v), np.zeros(len(v)), label=k)
+    fig, ax = plt.subplots(figsize=(16, 4))
+    for k, v in results.items():
+        ax.scatter(np.array(v), np.zeros(len(v)), label=k)
 
-    # ax.set_ylim(-1, 1)
-    # ax.yaxis.set_visible(False)
-    # plt.legend(bbox_to_anchor=(1, 1))
-    # plt.savefig("test-%s.jpg" % window_size)
+    ax.set_ylim(-1, 1)
+    ax.yaxis.set_visible(False)
+    plt.legend(bbox_to_anchor=(1, 1))
+    plt.savefig("test-%s.jpg" % window_size)

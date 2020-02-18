@@ -133,7 +133,7 @@ def main():
     current_path = path_proc()
 
     nCOV = RandomCut(in_file=in_file, mode=mode, seg_length=seg_length)
-    blastor = Blastor('%s' % in_file, 'coronavrius/coronavrius', mask)
+    blastor = Blastor('%s' % in_file, 'all-cov/all-cov', mask)
 
     def get_sseq_id():
         start, end, offset = nCOV.random_cut()

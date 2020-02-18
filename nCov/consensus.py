@@ -6,6 +6,7 @@ from collections import Counter, defaultdict
 
 
 def read_log(_in):
+    sacs = []
     snames = []
     pidents = []
     qstarts = []
@@ -13,11 +14,12 @@ def read_log(_in):
     with open(_in) as f:
         for line in f:
             row = line.split('\t')
+            sacs.append(row[1])
             snames.append(row[2])
-            pidents.append(float(row[3]))
-            qstarts.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[0]))
-            qends.append(int(re.findall(r'\d*\.\.\d*', row[0])[0].split('..')[1]))
-    return snames, pidents, qstarts, qends 
+            pidents.append(row[3])
+            qstarts.append(row[7])
+            qends.append(row[8])
+    return sacs, snames, pidents, qstarts, qends 
 
 
 def judge_in_window(window, chip): # window (start, end)  chip (start, end)
@@ -31,7 +33,7 @@ def in_window(window, X, y): # X (start, end, pident) y label
             results.append([x_i, y_i])
     return results
 
-def get_winner(_in, metric='identity'):
+def get_winner(_in, metric='count'):
     if metric == 'identity':
         winner = sorted(_in, key=lambda x: x[0][2], reverse=True)[0][1]
     elif metric == 'count':
@@ -45,7 +47,7 @@ def get_winners(X, y, len_of_seq=30000, window_size=25):
         window = (i, i+window_size)
         chips_in = in_window(window, X,  y)
         if chips_in:
-            winner = get_winner(chips_in, metric=metrix)
+            winner = get_winner(chips_in, metric=metric)
             winners.append((i, winner))
         else:
             continue
@@ -54,7 +56,7 @@ def get_winners(X, y, len_of_seq=30000, window_size=25):
 
 
 def main():
-    snames, pidents, qstarts, qends = read_log(_path)
+    _, snames, pidents, qstarts, qends = read_log(_path)
 
     X = np.array(list(zip(qstarts, qends, pidents)))
     y = np.array(list(map(lambda x: x.upper() , snames)))
@@ -72,7 +74,7 @@ def main():
     ax.set_xlim(offset, winners[-1][0]+offset)
     ax.set_ylim(-1, 1)
     ax.yaxis.set_visible(False)
-    ax.set_title('Recombination Analysis of %s Gene, WindowSize: %s' % (_fragment, window_size), loc='left', fontsize=16)
+    ax.set_title('Recombination Analysis of %s Gene, WindowSize: %s' % (_task, window_size), loc='left', fontsize=16)
     plt.legend(bbox_to_anchor=(1, 1))
 
     def draw_arrow(x, y):
@@ -85,15 +87,14 @@ def main():
                 draw_arrow(v[i-1], 0.8)
                 print(k, v[i-1])
 
-    fig.savefig(_path.replace('log', 'consensus') + '.jpg')
+    fig.savefig('%s.%s.jpg' % (_path.replace('log', 'consensus'), _task))
 
 
 if __name__ == '__main__':
-#    _, _path, _fragment, window_size = sys.argv
-    _path, _fragment, window_size = "nCov/log-wuhan-all-50000", 'all', '50'
+    _, _path, _task, window_size, metric = sys.argv
+#    _path, _fragment, window_size = "nCov/log-wuhan-all-50000", 'all', '50'
     window_size = int(window_size)
     sequence_length = 30000
     offset=0
-    metrix='identity'
 
     main()

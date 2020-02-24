@@ -27,11 +27,11 @@ def generate_fragments(qstarts, stitles, pidents):
         if stitles[i] != stitles[i-1]:
             end = qstarts[i-1]
             fragments[title].append((start, end))
-            print("%s : %s-%s" % (title, start, end))
+            print("%s : %s-%s, length: %s" % (title, start, end, end-start))
             start = qstarts[i]
             title = stitles[i]
-    print("%s : %s-%s" % (title, start, qstarts[-1]))
-    fragments[title].append((start, int(qstarts[-1])))
+    print("%s : %s-%s, length: %s" % (title, start, qstarts[-1], qstarts[-1]-start))
+    fragments[title].append((start, qstarts[-1]))
     return fragments, x_list, y_list
 
 
@@ -65,15 +65,15 @@ def main(_in):
     colormap = {}
     colors = list(mcolors.TABLEAU_COLORS.values())
     top_9 = [i[0] for i in sorted(list(Counter(stitles).most_common(9)), key=lambda x: x[1], reverse=True)]
-    print(top_9)
+
     stitles2 = list(map(lambda x: 'other' if x not in top_9 else x, stitles))
     colormap = {top_9[i]: colors[i] for i in range(len(top_9))}
     colormap['other'] = colors[9]
-    print(colormap)
+
 
     plot_fig(qstarts, stitles2, pidents, colormap, _in)
 
 
 tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
 for task in tasks:
-    main('nCov/RaTG13-%s' % task)
+    main('nCov/2019-ncov-%s' % task)

@@ -4,5 +4,5 @@
 mosaic/.vscode
 mosaic/__pycache__
 
-nCoV/*.jpg
-nCoV/*.log
+nCov/*.jpg
+nCov/*.log

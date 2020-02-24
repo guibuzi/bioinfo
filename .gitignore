@@ -5,5 +5,4 @@ mosaic/.vscode
 mosaic/__pycache__
 
 nCoV/*.jpg
-nCoV/log*
 nCoV/*.log

@@ -1,6 +1,6 @@
 # no .vscode files
 .vscode
-
+.gitignore
 mosaic/.vscode
 
 mosaic/__pycache__

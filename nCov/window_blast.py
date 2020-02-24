@@ -24,7 +24,8 @@ class Blastor():
         return seq
 
     def _blastn(self, query_loc):
-        command = "blastn -query %s -query_loc %s -db %s -num_alignments 5 \
+        command = "blastn -query %s -query_loc %s -db %s \
+                   -num_alignments 10 -task blastn -max_hsps 1\
                    -outfmt '6 qseqid qstart qend sseqid staxid sacc stitle scomname sstart send pident' \
                    -negative_seqidlist %s"  % (self.query, query_loc, self.db, self.mask)
         result = os.popen(command)  
@@ -77,9 +78,9 @@ def main(_in_file, _mask, window_size, outplot=False):
 
 
 if __name__ == "__main__":
-    # _, _in_file, _mask = sys.argv
-    _in_file = 'ZXC21.fasta'
-    _mask = '2019-ncov-ratg-batlike.idlist'
+    _, _in_file, _mask = sys.argv
+    # _in_file = 'RaTG13.fasta'
+    # _mask = '2019-ncov-ratg.idlist'
     # window_size = 500
 
     # qaccs, qstarts, qends, sseqids, staxids, saccs, stitles, snames, sstarts, sends, pidents

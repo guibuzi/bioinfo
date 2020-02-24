@@ -38,9 +38,9 @@ def main(_in):
 
 
 
-
-
-
 tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
 for task in tasks:
-    main('nCov/pangolin-%s' % task)
+    main('nCov/2019-ncov-%s' % task)
+    # main('nCov/RaTG13-%s' % task)
+    # main('nCov/pangolin-%s' % task)
+    # main('nCov/ZXC21-%s' % task)

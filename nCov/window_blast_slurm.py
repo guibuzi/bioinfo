@@ -25,7 +25,7 @@ class Blastor():
         return seq
 
     def _blastn(self, query_loc):
-        command = "blastn -query %s -query_loc %s -db %s \
+        command = "blastn -query %s -query_loc %s -db %s -num_threads 4\
                    -num_alignments 10 -task blastn -max_hsps 1\
                    -outfmt '6 qseqid qstart qend sseqid staxid sacc stitle scomname sstart send pident' \
                    -negative_seqidlist %s"  % (self.query, query_loc, self.db, self.mask)
@@ -95,12 +95,12 @@ def plot_fig(qstarts, stitles, pidents, colormap, out_name):
                    label=k, color=colormap[k], linewidth=8)
         plt.scatter(x=x_list[k], y=y_list[k] , color=colormap[k], s=2)
     ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0.)
-    fig.savefig("/home/zeng/python_work/bioinfo/nCov/result/%s.jpg" % out_name)
+    fig.savefig("result/%s.jpg" % out_name)
 
 
 def main(_in_file, _mask, window_size, outplot=False):
     out_name = "%s-%s" % (_in_file.split('.')[0], window_size)
-    test = Blastor('/home/zeng/Desktop/%s' % _in_file, 'all-cov/all-cov', '/home/zeng/Desktop/%s' % _mask)
+    test = Blastor('%s' % _in_file, '~/blastdb/all-cov/all-cov', '%s' % _mask)
     b = test.window_blast("result/%s.log" % out_name, window_size=int(window_size))
     if outplot:
         _, qstarts, _, _, _, _, stitles, snames, _, _, pidents = zip(*b)
@@ -121,21 +121,21 @@ def main(_in_file, _mask, window_size, outplot=False):
 
 
 if __name__ == "__main__":
-    _, _in_file, _mask = sys.argv
-    # _in_file = 'RaTG13.fasta'
-    # _mask = '2019-ncov-ratg.idlist'
+    # _, _in_file, _mask = sys.argv
+    _in_file = '2019-ncov.fasta'
+    _mask = '2019-ncov.idlist'
     # window_size = 500
 
     # qaccs, qstarts, qends, sseqids, staxids, saccs, stitles, snames, sstarts, sends, pidents
 
-    process_list = []
-    tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
-    for task in tasks:
-        p = Process(target=main, args=(_in_file, _mask, task, False, ))
-        p.start()
-        process_list.append(p)
+    # process_list = []
+    # tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
+    # for task in tasks:
+    #     p = Process(target=main, args=(_in_file, _mask, task, False, ))
+    #     p.start()
+    #     process_list.append(p)
     
-    for p in process_list:
-        p.join()
+    # for p in process_list:
+    #     p.join()
 
-#    main(_in_file, _mask, task, 500)
+    main(_in_file, _mask, 510)

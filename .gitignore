@@ -6,3 +6,4 @@ mosaic/__pycache__
 
 nCov/*.jpg
 nCov/*.log
+nCov/result/*

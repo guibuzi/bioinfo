@@ -70,10 +70,11 @@ def main(_in):
     colormap = {top_9[i]: colors[i] for i in range(len(top_9))}
     colormap['other'] = colors[9]
 
-
     plot_fig(qstarts, stitles2, pidents, colormap, _in)
-
+    # fragments, x_list, y_list = generate_fragments(qstarts, stitles, pidents)
 
 tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
 for task in tasks:
-    main('nCov/2019-ncov-%s' % task)
+    main('nCov/result/ZXC21-%s' % task)
+
+# main('nCov/result/2019-ncov-500')

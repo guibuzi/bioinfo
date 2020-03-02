@@ -129,7 +129,7 @@ if __name__ == "__main__":
     # qaccs, qstarts, qends, sseqids, staxids, saccs, stitles, snames, sstarts, sends, pidents
 
     process_list = []
-    tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
+    tasks = [3000, 2000, 1500, 1000, 500, 250, 100]
     for task in tasks:
         p = Process(target=main, args=(_in_file, _mask, task, False, ))
         p.start()

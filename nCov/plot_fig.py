@@ -56,8 +56,10 @@ def plot_fig(qstarts, stitles, pidents, colormap, _in):
 
 def main(_in):
     b = read_log("/home/zeng/python_work/bioinfo/%s.log" % _in)
-    _, qstarts, _, _, _, _, stitles, snames, _, _, pidents = zip(*b)
+    _, qstarts, qends, _, _, _, stitles, snames, _, _, pidents = zip(*b)
     qstarts = [int(x) for x in qstarts if x != 'None']
+    qends = [int(x) for x in qends if x != 'None']
+    midpoints = [(s+e)//2 for s, e in zip(qstarts, qends)]
     pidents = [float(x) for x in pidents if x != 'None']
     stitles = [x for x in stitles if x != 'None']
     snames = [x for x in snames if x != 'None']
@@ -70,11 +72,11 @@ def main(_in):
     colormap = {top_9[i]: colors[i] for i in range(len(top_9))}
     colormap['other'] = colors[9]
 
-    plot_fig(qstarts, stitles2, pidents, colormap, _in)
+    plot_fig(midpoints, stitles2, pidents, colormap, _in)
     # fragments, x_list, y_list = generate_fragments(qstarts, stitles, pidents)
 
 tasks = [3000, 2000, 1500, 1000, 500, 250, 200, 150, 100]
 for task in tasks:
-    main('nCov/result/ZXC21-%s' % task)
+    main('nCov/result/ZC45-%s' % task)
 
-# main('nCov/result/2019-ncov-500')
+# main('nCov/result/ZXC21-500')

@@ -46,12 +46,12 @@ def main(_in):
     stitles = [x for x in stitles if x != 'None']
     snames = [x for x in snames if x != 'None']
 
-    with open("/home/zeng/Desktop/source_of_pangolin_gd.txt", "w") as f:
-        f.write("EPI_ISL_410721\n")
+    with open("/home/zeng/Desktop/source_of_zxc21_2.txt", "w") as f:
+        f.write("MG772934\n")
         f.write('\n'.join(set(saccs)))
 
 
     generate_fragments(midpoints, stitles)
 
 
-main('pangolin-gd-1000')
+main('ZXC21-1000')

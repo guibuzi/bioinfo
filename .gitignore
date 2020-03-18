@@ -1,9 +1,12 @@
 # no .vscode files
 .vscode
 
+.history
+
 mosaic/.vscode
 mosaic/__pycache__
 
 nCov/*.jpg
 nCov/*.log
 nCov/result/*
+nCov/log*

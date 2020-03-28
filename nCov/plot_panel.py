@@ -71,7 +71,7 @@ def plot_hlines(ax, task, min_length=3, **kwargs):
 
 def main(**kwargs):
     # tasks = ['sars-cov-2_80_500_cds.json', 'ratg13_80_500_cds.json', 'pangolin-gd_80_500_cds.json', 'pangolin-gx_80_500_cds.json']
-    tasks = ['sars-cov-2-500.json', 'ratg13-500.json']
+    tasks = ['sars-cov-2-500.json', 'sars-cov-2-501.json']
     
     cell_width = 16
     cell_height = 4

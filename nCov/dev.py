@@ -246,22 +246,27 @@ def main(start, stop, step):
 
 if __name__ == '__main__':
     os.chdir("/home/zeng/Desktop/recombination-analysis-0328")
-    file = "2019-ncov-cds.fasta"
-    mask = 'idlist.2019-ncov'
-    sequence = Sequence()
-    sequence.load_seqs(file)
+    # files = ['ratg13-cds.fasta', 'pangolin-gd-cds.fasta', 'pangolin-gx-cds.fasta', 'bat_SL_ZC45_cds.fasta', 'bat_SL_ZXC21_cds.fasta', '2019-ncov-cds.fasta']
+    # masks = ['idlist.2019-ncov-ratg', 'idlist.2019-ncov-ratg-pangolin-gd', 'idlist.2019-ncov-ratg-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov']
 
-    window_size = 501
-    step = 3
-    b_length = 1000
-    b_ident_threshod = 80
-    bootstrap_times = 1000
-    bootstrap_threshod = 0.7
-    stop = len(sequence.sequence) - window_size
+    files = ["ratg13-cds.fasta"]
+    masks = ['idlist.2019-ncov-ratg']
 
-    # one_window(1714)
-    results = main(1, stop, step)
-    with open('sars-cov-2-%s.json' % window_size, 'w') as f:
-        f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
+    for mask, file in zip(masks, files):
+        sequence = Sequence()
+        sequence.load_seqs(file)
+
+        window_size = 501
+        step = 3
+        b_length = 1000
+        b_ident_threshod = 80
+        bootstrap_times = 1000
+        bootstrap_threshod = 0.7
+        stop = len(sequence.sequence) - window_size
+
+        # one_window(1714)
+        results = main(1, stop, step)
+        with open(file.replace('.fasta', '.json'), 'w') as f:
+            f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
 
 

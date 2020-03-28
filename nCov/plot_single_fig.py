@@ -12,7 +12,6 @@ def read_log(_in):
             results.append(r)
     return results
 
-
 def generate_fragments(qstarts, stitles, pidents):
     x_list = defaultdict(list)
     y_list = defaultdict(list)

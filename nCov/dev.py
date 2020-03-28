@@ -36,6 +36,9 @@ class Sequence:
         sequence = self.sequence[start-1: end]
         return Sequence(self.acc, self.title, sequence, start, end)
     
+    def update(self, seq):
+        self.sequence = seq
+
     def fasta(self):
         return ">%s %s..%s..%s\n%s\n" % (self.acc, self.start, self.end, self.title, self.sequence)
 
@@ -57,9 +60,6 @@ class Subject(Sequence):
         except:
             bident = 0
         return bident
-    
-    def update(self, seq):
-        self.sequence = seq
 
     def __eq__(self, item):
         return self.acc == item.acc
@@ -115,38 +115,46 @@ class Triplet:
         self.query = query
         self.background = background
         self.subject = subject
-        self.n_subject = len(subject)
     
-    def fasta(self, write=True):
+    def _fasta(self, _out):
         query_ = self.query.fasta()
         background_ = self.background.fasta()
-        subject_ = ''.join([i.fasta() for i in self.subject])
-        if write:
-            f = open('%s_%s_%s.fasta' % (self.query.acc, self.query.start, self.query.end), 'w')
-            f.write(''.join([query_, background_, subject_]))
-            f.close()
-        return query_, background_, subject_
+        subject_ = self.subject.fasta()
+        f = open(_out, 'w')
+        f.write(''.join([query_, background_, subject_]))
+        f.close()
+        # return query_, background_, subject_
 
     def align(self):
-        _in = '%s_%s_%s.fasta' % (self.query.acc, self.query.start, self.query.end)
-        self.fasta()
-        res = os.popen('mafft --auto --quiet %s' % (_in)).read().split('>')[1:]
-        os.remove(_in)
-        count = 0
-        subjects = Result()
-        for seq in res:
-            label, *nucl = seq.split('\n')
-            acc, *attr = label.split()
-            (start, end, title), seq = ' '.join(attr).split('..'), ''.join(nucl)
-            sequence = Subject(acc, title, seq, start, end)
-            if count < 1:
-                query = sequence
-            elif count < 2:
-                background = sequence
-            elif count < 2 + self.n_subject:
-                subjects.append(sequence)
-            count += 1
-        self.query, self.subject, self.background = query, subjects, background
+        _tmp = '%s_%s_%s.fasta' % (self.query.acc, self.query.start, self.query.end)
+        self._fasta(_tmp)
+        ress = os.popen('mafft --auto --quiet %s' % (_tmp)).read().split('>')[1:]
+        tasks = [self.query, self.background, self.subject]
+        for i, res in enumerate(ress):
+            tasks[i].update(''.join(res.split('\n')[1:]))
+        os.remove(_tmp)
+    
+    def kaks(self): # if ks of subject > ks of background return True
+        _tmp = '%s_%s_%s' % (self.query.acc, self.query.start, self.query.end)
+        # print(len(self.query.sequence), len(self.background.sequence), len(self.subject.sequence))
+        # print(self.query.sequence, self.background.sequence, self.subject.sequence, sep='\n')
+        with open('%s.axt' % _tmp, 'w') as f:
+            f.write('%s-%s\n' % (self.query.title, self.background.title))
+            f.write('%s\n%s\n' % (self.query.sequence, self.background.sequence))
+            f.write('\n')
+            f.write('%s-%s\n' % (self.query.title, self.subject.title))
+            f.write('%s\n%s\n' % (self.query.sequence, self.subject.sequence))
+        commond = "KaKs_Calculator -i %s.axt -o %s.axt.kaks -m LWL >> /dev/null 2>&1" % (_tmp, _tmp)
+        os.system(commond)
+        with open('%s.axt.kaks' % _tmp) as f:
+            f.readline()
+            b_ks = f.readline().rstrip().split()[3]
+            s_ks = f.readline().rstrip().split()[3]
+            f = lambda x: float(x) if x != 'NA' else 0
+        os.remove('%s.axt' % _tmp)
+        os.remove('%s.axt.kaks' % _tmp)
+        return f(b_ks) > f(s_ks)
+
 
     def _identity(self, x, y):
         count = 0
@@ -157,15 +165,9 @@ class Triplet:
 
     def is_subject(self):
         background_pident = self._identity(self.query, self.background)
-        s_pident = [self._identity(self.query, s) for s in self.subject]
-        # print('back: ', background_pident, 'subject: ', s_pident)
-        for pident in s_pident:
-            if background_pident < pident:
-                return True
-
-    def is_background(self):
-        if self.background in self.subject:
-            return True
+        subject_pident = self._identity(self.query, self.subject)
+        # print('back: ', background_pident, 'subject: ', subject_pident)
+        return background_pident < subject_pident
 
 
 class Bootstrap:
@@ -173,7 +175,7 @@ class Bootstrap:
         self.triplet = triplet
         self._query = np.array(list(triplet.query.sequence))
         self._background = np.array(list(triplet.background.sequence))
-        self._subject = [np.array(list(s.sequence)) for s in triplet.subject]
+        self._subject = np.array(list(triplet.subject.sequence))
         self._length = len(triplet.query.sequence)
 
     def sampling(self, sample_size=1000):
@@ -181,16 +183,15 @@ class Bootstrap:
         idx = np.random.randint(0, self._length, size=(sample_size, self._length))
         querys = self._query[idx]
         backgrounds = self._background[idx]
-        subjects = zip(*[i[idx] for i in self._subject])
+        subjects = self._subject[idx]
         for query, background, subject in zip(querys, backgrounds, subjects):
             tmp = copy.deepcopy(self.triplet)
             tmp.query.update(''.join(query))
             tmp.background.update(''.join(background))
-            for i, s in enumerate(subject):
-                tmp.subject[i].update(''.join(s))
+            tmp.subject.update(''.join(subject))
             samples.append(tmp)
         return samples
-            
+
 
 def get_background(sequence, mask, start, end):
     sequence_background = sequence.extract_part(start, end)
@@ -206,30 +207,31 @@ def one_window(start, *args, **kwargs):
     b_end = end + b_length
 
     sequence_part = sequence.extract_part(start, end)
-    query = Query(sequence_part.acc, sequence_part.title, sequence_part.sequence, sequence_part.start, sequence_part.end)
+    query = Query(sequence_part.acc, sequence_part.title, \
+                  sequence_part.sequence, sequence_part.start, sequence_part.end)
     query.blastn(mask)
     background = query.get_item(get_background(sequence, mask, b_start, b_end))
-    subjects = Result([subject for subject in query.get_top1() if subject.get_bident(sequence) > b_ident_threshod])
-    
-    triplet = Triplet(query, background, subjects)
-    if triplet.is_background():
-        winner = [triplet.background.title]
-        bootstrap_support = None
+    subjects = Result([subject for subject in query.get_top1() \
+                               if subject.get_bident(sequence) > b_ident_threshod])
+    if background in subjects:
+        winner = [background.title]
+        print('Postion: %s-%s, Refused, winner: %s' % (start, end, winner[0]))
     else:
-        triplet.align()
-        bootstrap = Bootstrap(triplet)
-        replicates = bootstrap.sampling(bootstrap_value)
-        count= 0
-        for replicate in replicates:
-            if replicate.is_subject():
-                count += 1
-        else:
-            bootstrap_support = count / bootstrap_value
-        if bootstrap_support >= bootstrap_support:
-            winner = list(set([s.title for s in triplet.subject]))
-        else:
-            winner = [triplet.background.title]
-    print("Position: %s-%s, Background: %s, Winner: %s, Bootstrap support: %s" % (start, end, triplet.background.title, ' '.join(winner), bootstrap_support))        
+        winner = []
+        for subject in subjects:
+            triplet = Triplet(query, background, subject)
+            triplet.align()
+            if triplet.kaks(): # ks(subject) < ks(background)
+                bootstrap = Bootstrap(triplet)
+                replicates = bootstrap.sampling(bootstrap_times)
+                passed = [1 for replicate in replicates if replicate.is_subject()]
+                bootstrap_support = sum(passed) / bootstrap_times
+                if bootstrap_support >= bootstrap_threshod:
+                    winner.append(subject.title)
+                    print("Position: %s-%s, Background: %s, Winner: %s, Bootstrap support: %s" % (start, end, background.title, subject.title, bootstrap_support))
+        if not winner:
+            winner.append(background.title)
+            print('Postion: %s-%s, Refused, winner: %s' % (start, end, winner[0]))
     return start, winner
 
 def main(start, stop, step):
@@ -244,22 +246,22 @@ def main(start, stop, step):
 
 if __name__ == '__main__':
     os.chdir("/home/zeng/Desktop/recombination-analysis-0328")
-    file = "ratg13-cds.fasta"
-    mask = 'idlist.2019-ncov-ratg'
+    file = "2019-ncov-cds.fasta"
+    mask = 'idlist.2019-ncov'
     sequence = Sequence()
     sequence.load_seqs(file)
 
-    window_size = 500
+    window_size = 501
     step = 3
     b_length = 1000
     b_ident_threshod = 80
-    bootstrap_value = 1000
-    bootstrap_support = 0.7
+    bootstrap_times = 1000
+    bootstrap_threshod = 0.7
     stop = len(sequence.sequence) - window_size
 
-    #one_window(1)
+    # one_window(1714)
     results = main(1, stop, step)
-    with open('ratg13-%s.json' % window_size, 'w') as f:
+    with open('sars-cov-2-%s.json' % window_size, 'w') as f:
         f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
 
 

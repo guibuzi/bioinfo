@@ -23,7 +23,7 @@ def read_data(_in):
     # read data
     with open(_in) as f:
         results = json.loads(f.read())
-    results = {int(k): set(map(lambda x: key_map.get(x, 'SARSr'), v)) for k, v in results.items()}
+    results = {int(k): set(map(lambda x: key_map.get(x[1], 'SARSr'), v)) for k, v in results.items() for i in v if i[0]!='I'}
     # unify by source virus
     source_by_virus = defaultdict(list)
     for k, v in results.items():
@@ -32,7 +32,7 @@ def read_data(_in):
     return source_by_virus
 
 
-def fragment(hits, inter_length=3):
+def fragment(hits, inter_length=20):
     fragments = []
     start = hits[0]
     for i in range(len(hits)-1):
@@ -61,7 +61,7 @@ def plot_hlines(ax, task, min_length=3, **kwargs):
                 if l > min_length:
                     ax.text(s, yvalue, str(s), fontsize=6)
                     ax.text(e, yvalue, str(e), fontsize=6)
-            ax.hlines(y=[yvalue]*len(v), xmin=xmins, xmax=xmaxs, colors=color_map[k], lw=20)
+            ax.hlines(y=[yvalue]*len(v), xmin=xmins, xmax=xmaxs, colors=color_map[k], lw=4)
             yvalues.append(yvalue)
             yticks.append(k)
             yvalue -= 0.1
@@ -71,7 +71,7 @@ def plot_hlines(ax, task, min_length=3, **kwargs):
 
 def main(**kwargs):
     # tasks = ['sars-cov-2_80_500_cds.json', 'ratg13_80_500_cds.json', 'pangolin-gd_80_500_cds.json', 'pangolin-gx_80_500_cds.json']
-    tasks = ['sars-cov-2-500.json', 'sars-cov-2-501.json']
+    tasks = ['2019-ncov-cds.json']
     
     cell_width = 16
     cell_height = 4
@@ -85,11 +85,11 @@ def main(**kwargs):
     fig, axes = plt.subplots(n, 1, figsize=(width, height))
     fig.subplots_adjust(margin/width, margin/height, (width-margin)/width, (height-topmargin)/height)
 
-    # plot_hlines(axes, tasks[0])
-    for i, task in enumerate(tasks):
-       plot_hlines(axes[i], task, **kwargs)
+    plot_hlines(axes, tasks[0])
+    # for i, task in enumerate(tasks):
+    #    plot_hlines(axes[i], task, **kwargs)
     # plt.show()
-    plt.savefig('nCov/tt.jpg')
+    plt.savefig('tt.jpg')
 
 
 main(inter_length=3, min_length=100)

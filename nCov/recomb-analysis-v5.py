@@ -99,7 +99,7 @@ class Query(Sequence):
                         -negative_seqidlist %s -task blastn \
                         2> /dev/null" % (self.sequence, db, mask)
         for x in os.popen(commond).readlines():
-            _, _, _, sacc, sstart, send, pident, score, sseq, stitle = x.rstrip().split('\t')
+            _, _, _, sacc, sstart, send, pident, score, sseq, stitle = x.rstrip().split('\t')        
             subject = Subject(sacc, stitle, sseq, int(sstart), int(send), float(pident), int(score))
             self.results.append(subject)
 
@@ -151,6 +151,7 @@ class Triplet:
             b_ks = f.readline().rstrip().split()[3]
             s_ks = f.readline().rstrip().split()[3]
             f = lambda x: float(x) if x != 'NA' else 0
+        print('\tdS(back): %s, dS(subject): %s' % (f(b_ks), f(s_ks)))
         os.remove('%s.axt' % _tmp)
         os.remove('%s.axt.kaks' % _tmp)
         return f(b_ks) > f(s_ks)
@@ -202,36 +203,40 @@ def get_background(sequence, mask, start, end):
 
 
 def one_window(start, *args, **kwargs):
+    # status: I: subject coincidence with background; V: bootstrap verified; E: bootstarp reject
     end = start + window_size - 1
     b_start = start - b_length
     b_end = end + b_length
 
     sequence_part = sequence.extract_part(start, end)
-    query = Query(sequence_part.acc, sequence_part.title, \
-                  sequence_part.sequence, sequence_part.start, sequence_part.end)
+    query = Query(sequence_part.acc, sequence_part.title, sequence_part.sequence, sequence_part.start, sequence_part.end)
     query.blastn(mask)
     background = query.get_item(get_background(sequence, mask, b_start, b_end))
-    subjects = Result([subject for subject in query.get_top1() \
-                               if subject.get_bident(sequence) > b_ident_threshod])
+    subjects = Result([subject for subject in query.get_top1() if subject.get_bident(sequence) > b_ident_threshod])
     if background in subjects:
-        winner = [background.title]
-        print('Postion: %s-%s, Refused, winner: %s' % (start, end, winner[0]))
+        winner = [('I', background.title, 1)]
+        print('Postion: %s-%s, Background: %s, Rejected due to in subjects, winner: %s' % (start, end, background.title,background.title))
     else:
         winner = []
+        print('Postion: %s-%s, Background: %s, Pident: %s' % (start, end, background.title, background.pident))
         for subject in subjects:
             triplet = Triplet(query, background, subject)
             triplet.align()
-            if triplet.kaks(): # ks(subject) < ks(background)
+            if True:
+            # if triplet.kaks(): # ks(subject) < ks(background)
                 bootstrap = Bootstrap(triplet)
                 replicates = bootstrap.sampling(bootstrap_times)
                 passed = [1 for replicate in replicates if replicate.is_subject()]
                 bootstrap_support = sum(passed) / bootstrap_times
+                print("\tSubject: %s, Pident: %s, Bootstrap support: %s" % (subject.title, subject.pident, bootstrap_support))
                 if bootstrap_support >= bootstrap_threshod:
-                    winner.append(subject.title)
-                    print("Position: %s-%s, Background: %s, Winner: %s, Bootstrap support: %s" % (start, end, background.title, subject.title, bootstrap_support))
+                    winner.append(('V', subject.title, bootstrap_support))
+                    print("\tWinner: %s" % (subject.title))
+            # else:
+            #     print('\tSubject: %s, Reject due to dS(subject) > dS(background)' % subject.title)
         if not winner:
-            winner.append(background.title)
-            print('Postion: %s-%s, Refused, winner: %s' % (start, end, winner[0]))
+            winner.append(('E', background.title, 0))
+            print('\tWinner: %s' % (background.title))
     return start, winner
 
 def main(start, stop, step):
@@ -249,22 +254,22 @@ if __name__ == '__main__':
     # files = ['ratg13-cds.fasta', 'pangolin-gd-cds.fasta', 'pangolin-gx-cds.fasta', 'bat_SL_ZC45_cds.fasta', 'bat_SL_ZXC21_cds.fasta', '2019-ncov-cds.fasta']
     # masks = ['idlist.2019-ncov-ratg', 'idlist.2019-ncov-ratg-pangolin-gd', 'idlist.2019-ncov-ratg-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov']
 
-    files = ["ratg13-cds.fasta"]
-    masks = ['idlist.2019-ncov-ratg']
+    files = ["2019-ncov-cds.fasta"]
+    masks = ['idlist.2019-ncov']
+
+    window_size = 150
+    step = 20
+    b_length = 1000
+    b_ident_threshod = 80
+    bootstrap_times = 100
+    bootstrap_threshod = 0.7
 
     for mask, file in zip(masks, files):
         sequence = Sequence()
         sequence.load_seqs(file)
-
-        window_size = 501
-        step = 3
-        b_length = 1000
-        b_ident_threshod = 80
-        bootstrap_times = 1000
-        bootstrap_threshod = 0.7
         stop = len(sequence.sequence) - window_size
-
-        # one_window(1714)
+        #one_window(22770)
+        # results = {i: one_window(i)[1] for i in range(22250, 22800, step)}
         results = main(1, stop, step)
         with open(file.replace('.fasta', '.json'), 'w') as f:
             f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))

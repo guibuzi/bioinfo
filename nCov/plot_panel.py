@@ -17,12 +17,13 @@ key_map = {'RaTG13': 'RaTG13',
 labels = ['RaTG13', 'pangolin/GD', 'pangolin/GX', 'bat_SL', 'Longquan_140', 'HKU3', 'SARSr','NA']
 color_map = {v: list(mcolors.TABLEAU_COLORS.values())[i] for i,v in enumerate(labels)}
 
+dirpath='/home/zeng/Desktop/recombination-analysis-0328'
 
 def read_data(_in):
     # read data
     with open(_in) as f:
         results = json.loads(f.read())
-    results = {int(k): set(map(lambda x: key_map.get(x, 'SARSr'), v)) for k, v in results.items()}
+    results = {int(k): set(map(lambda x: key_map.get(x[1], 'SARSr'), v)) for k, v in results.items()}
     # unify by source virus
     source_by_virus = defaultdict(list)
     for k, v in results.items():
@@ -31,7 +32,7 @@ def read_data(_in):
     return source_by_virus
 
 
-def fragment(hits, inter_length=3):
+def fragment(hits, inter_length=20):
     fragments = []
     start = hits[0]
     for i in range(len(hits)-1):
@@ -46,7 +47,7 @@ def fragment(hits, inter_length=3):
 
 
 def plot_hlines(ax, task, min_length=3, **kwargs):
-    source_by_virus = read_data('nCov/%s' % task)
+    source_by_virus = read_data('%s/%s' % (dirpath, task))
     fragments_by_virus = {k: fragment(v, **kwargs) for k, v in source_by_virus.items()}
 
     yvalue = 0
@@ -60,16 +61,17 @@ def plot_hlines(ax, task, min_length=3, **kwargs):
                 if l > min_length:
                     ax.text(s, yvalue, str(s), fontsize=6)
                     ax.text(e, yvalue, str(e), fontsize=6)
-            ax.hlines(y=[yvalue]*len(v), xmin=xmins, xmax=xmaxs, colors=color_map[k], lw=3)
+            ax.hlines(y=[yvalue]*len(v), xmin=xmins, xmax=xmaxs, colors=color_map[k], lw=4)
             yvalues.append(yvalue)
             yticks.append(k)
-            yvalue -= 1
+            yvalue -= 0.1
     ax.set_yticks(yvalues)
     ax.set_yticklabels(yticks)
 
 
 def main(**kwargs):
-    tasks = ['sars-cov-2_80_500_cds.json', 'ratg13_80_500_cds.json', 'pangolin-gd_80_500_cds.json', 'pangolin-gx_80_500_cds.json']
+    # tasks = ['sars-cov-2_80_500_cds.json', 'ratg13_80_500_cds.json', 'pangolin-gd_80_500_cds.json', 'pangolin-gx_80_500_cds.json']
+    tasks = ['ratg13-cds.json']
     
     cell_width = 16
     cell_height = 4
@@ -83,9 +85,11 @@ def main(**kwargs):
     fig, axes = plt.subplots(n, 1, figsize=(width, height))
     fig.subplots_adjust(margin/width, margin/height, (width-margin)/width, (height-topmargin)/height)
 
-    for i, task in enumerate(tasks):
-       plot_hlines(axes[i], task, **kwargs)
-    plt.show()
+    plot_hlines(axes, tasks[0])
+    # for i, task in enumerate(tasks):
+    #    plot_hlines(axes[i], task, **kwargs)
+    # plt.show()
+    plt.savefig('tt.jpg')
 
 
-main(inter_length=3, min_length=100)
+main(inter_length=20, min_length=100)

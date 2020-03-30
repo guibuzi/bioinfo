@@ -23,7 +23,7 @@ def read_data(_in):
     # read data
     with open(_in) as f:
         results = json.loads(f.read())
-    results = {int(k): set(map(lambda x: key_map.get(x[1], 'SARSr'), v)) for k, v in results.items() for i in v if i[0]!='I'}
+    results = {int(k): set(map(lambda x: key_map.get(x[1], 'SARSr'), v)) for k, v in results.items()}
     # unify by source virus
     source_by_virus = defaultdict(list)
     for k, v in results.items():
@@ -71,7 +71,7 @@ def plot_hlines(ax, task, min_length=3, **kwargs):
 
 def main(**kwargs):
     # tasks = ['sars-cov-2_80_500_cds.json', 'ratg13_80_500_cds.json', 'pangolin-gd_80_500_cds.json', 'pangolin-gx_80_500_cds.json']
-    tasks = ['2019-ncov-cds.json']
+    tasks = ['ratg13-cds.json']
     
     cell_width = 16
     cell_height = 4
@@ -92,4 +92,4 @@ def main(**kwargs):
     plt.savefig('tt.jpg')
 
 
-main(inter_length=3, min_length=100)
+main(inter_length=20, min_length=100)

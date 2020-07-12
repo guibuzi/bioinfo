@@ -257,12 +257,12 @@ if __name__ == '__main__':
     files = ["2019-ncov-cds.fasta"]
     masks = ['idlist.2019-ncov']
 
-    window_size = 150
-    step = 20
+    window_size = 500
+    step = 3
     b_length = 1000
     b_ident_threshod = 80
-    bootstrap_times = 100
-    bootstrap_threshod = 0.7
+    bootstrap_times = 500
+    bootstrap_threshod = 0.8
 
     for mask, file in zip(masks, files):
         sequence = Sequence()

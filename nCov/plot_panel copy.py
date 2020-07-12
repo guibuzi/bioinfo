@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 
 key_map = {
+    'RmYN02': 'RmYN02',
     'RaTG13': 'RaTG13',
     'pangolin/GD': 'PangolinGD',
     'bat_SL_CoVZXC21': 'BatSL',
@@ -12,26 +13,26 @@ key_map = {
     'NA': 'NA'
 }
 color_list = [
-    '#EB79CB', '#323232', '#F80000', '#4169E1', '#32CD32', '#FFFF00', '#FFA500'
+    '#EB79CB', '#323232', '#F80000', '#4169E1', '#32CD32', '#FFFF00', '#FFA500', '#FF00FF'
 ]
 lineages = [
     'SARS', 'SARSr-CoVs', 'SARS-CoV-2', 'RaTG13', 'PangolinGD', 'PangolinGX',
-    'BatSL'
+    'BatSL', 'RmYN02'
 ]
 
 color_map = {a: b for a, b in zip(lineages, color_list)}
 
-dirpath = '/Users/jinfeng/Desktop/evolution_and_diversity/blast_analysis'
+dirpath = '/Users/jinfeng/Desktop/recombination_task'
 
 tasks = [
-    '2019-ncov-cds.0.8.json', 'ratg13-cds.0.8.json',
-    'pangolin-gd-cds.0.8.json', 'pangolin-gx-cds.0.8.json'
+    'SARS-CoV-2.json', 'SARS-CoV-2.backbone.json', '2019-ncov-cds.json'
 ]
 querys = [
-    'SARS-CoV-2', 'RaTG13', 'PangolinGD', 'PangolinGX', 'BatSL',
-    'SARSr-CoVs'
+    'SARS-CoV-2', 'RmYN02','RaTG13', 'PangolinGD', 'PangolinGX', 'BatSL', 'SARSr-CoVs'
 ]
-backbones = ['RaTG13', 'PangolinGD', 'PangolinGX', 'BatSL']
+backbones = ['RmYN02', 'RaTG13', 'PangolinGD', 'PangolinGX', 'BatSL']
+querys2 = [ 'SARS-CoV-2', 'SARS-CoV-2', 'SARS-CoV-2']
+backbones2 = ['RmYN02', 'RmYN02', 'RaTG13']
 
 
 def read_data(_in):
@@ -97,7 +98,7 @@ def plot_hlines(ax, task, query, **kwargs):
     ax.set_ylim([0, 1.3])
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
     ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1], fontsize=8)
-    ax.text(0.1, 0.1, "Query: %s, Backbone: %s" % (querys[order], backbones[order]), fontsize=10, fontfamily='Arial')
+    ax.text(0.1, 0.1, "Query: %s, Backbone: %s" % (querys2[order], backbones2[order]), fontsize=10, fontfamily='Arial')
     # ax.set_ylabel('bootstrap value', fontsize=8)
     # secax = ax.secondary_yaxis('right')
     # secax.set_yticks([])
@@ -179,7 +180,8 @@ def main(**kwargs):
     plt.xlabel("Genomic position", fontsize=10, fontfamily='Arial')
     # plt.ylabel("Bootstrp value", fontsize=8)
     plt.xticks(fontsize=8, fontfamily='Arial')
-    fig.savefig('/Users/jinfeng/Desktop/evolution_and_diversity/figure/figure1b.svg')
+    # fig.savefig('/Users/jinfeng/Desktop/figure1b.svg')
+    plt.show()
 
 
 main(inter_length=3, min_length=100)

@@ -37,7 +37,6 @@ backbones = ['RaTG13', 'PangolinGD', 'PangolinGX', 'BatSL']
 def read_data(_in):
     # read data
     with open(_in) as f:
-<<<<<<< HEAD
         contents = json.loads(f.read())
     results = {
         int(k): set(map(lambda x: key_map.get(x[1], 'SARSr-CoVs'), v))
@@ -46,10 +45,6 @@ def read_data(_in):
     x_ = [int(k) for k in contents.keys()]
     y_ = [sum([v_i[2] for v_i in v]) / len(v) for v in contents.values()]
     y_ = list(map(lambda x: 0.65 if x == 0 else x, y_))
-=======
-        results = json.loads(f.read())
-    results = {int(k): set(map(lambda x: key_map.get(x[1], 'SARSr'), v)) for k, v in results.items()}
->>>>>>> 9f175737e34343bb328b8302c7957cc8304a0b39
     # unify by source virus
     source_by_virus = defaultdict(list)
     for k, v in results.items():
@@ -111,15 +106,6 @@ def plot_hlines(ax, task, query, **kwargs):
 
 def main(**kwargs):
     # tasks = ['sars-cov-2_80_500_cds.json', 'ratg13_80_500_cds.json', 'pangolin-gd_80_500_cds.json', 'pangolin-gx_80_500_cds.json']
-<<<<<<< HEAD
-=======
-    tasks = ['ratg13-cds.json']
-    
-    cell_width = 16
-    cell_height = 4
-    margin = 2
-    topmargin = 1
->>>>>>> 9f175737e34343bb328b8302c7957cc8304a0b39
 
     n = len(tasks)
 
@@ -196,8 +182,4 @@ def main(**kwargs):
     fig.savefig('/Users/jinfeng/Desktop/evolution_and_diversity/figure/figure1b.svg')
 
 
-<<<<<<< HEAD
 main(inter_length=3, min_length=100)
-=======
-main(inter_length=20, min_length=100)
->>>>>>> 9f175737e34343bb328b8302c7957cc8304a0b39

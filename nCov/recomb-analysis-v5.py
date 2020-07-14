@@ -213,11 +213,12 @@ def one_window(start, *args, **kwargs):
     query.blastn(mask)
     background = query.get_item(get_background(sequence, mask, b_start, b_end))
     subjects = Result([subject for subject in query.get_top1() if subject.get_bident(sequence) > b_ident_threshod])
-    if background in subjects:
+    if background in subjects or len(subjects)==0:
         winner = [('I', background.title, 1)]
         print('Postion: %s-%s, Background: %s, Rejected due to in subjects, winner: %s' % (start, end, background.title,background.title))
     else:
         winner = []
+        supports = 0
         print('Postion: %s-%s, Background: %s, Pident: %s' % (start, end, background.title, background.pident))
         for subject in subjects:
             triplet = Triplet(query, background, subject)
@@ -228,6 +229,7 @@ def one_window(start, *args, **kwargs):
                 replicates = bootstrap.sampling(bootstrap_times)
                 passed = [1 for replicate in replicates if replicate.is_subject()]
                 bootstrap_support = sum(passed) / bootstrap_times
+                supports += bootstrap_support
                 print("\tSubject: %s, Pident: %s, Bootstrap support: %s" % (subject.title, subject.pident, bootstrap_support))
                 if bootstrap_support >= bootstrap_threshod:
                     winner.append(('V', subject.title, bootstrap_support))
@@ -235,7 +237,7 @@ def one_window(start, *args, **kwargs):
             # else:
             #     print('\tSubject: %s, Reject due to dS(subject) > dS(background)' % subject.title)
         if not winner:
-            winner.append(('E', background.title, 0))
+            winner.append(('E', background.title, supports/len(subjects)))
             print('\tWinner: %s' % (background.title))
     return start, winner
 
@@ -251,11 +253,11 @@ def main(start, stop, step):
 
 if __name__ == '__main__':
     os.chdir("/home/zeng/Desktop/recombination-analysis-0328")
-    # files = ['ratg13-cds.fasta', 'pangolin-gd-cds.fasta', 'pangolin-gx-cds.fasta', 'bat_SL_ZC45_cds.fasta', 'bat_SL_ZXC21_cds.fasta', '2019-ncov-cds.fasta']
-    # masks = ['idlist.2019-ncov-ratg', 'idlist.2019-ncov-ratg-pangolin-gd', 'idlist.2019-ncov-ratg-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov']
+    files = ['2019-ncov-cds.fasta', 'ratg13-cds.fasta', 'pangolin-gd-cds.fasta', 'pangolin-gx-cds.fasta', 'bat_SL_ZC45_cds.fasta', 'bat_SL_ZXC21_cds.fasta']
+    masks = ['idlist.2019-ncov', 'idlist.2019-ncov-ratg', 'idlist.2019-ncov-ratg-pangolin-gd', 'idlist.2019-ncov-ratg-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin']
 
-    files = ["2019-ncov-cds.fasta"]
-    masks = ['idlist.2019-ncov']
+    files = ["ratg13-cds.fasta"]
+    masks = ['idlist.2019-ncov-ratg']
 
     window_size = 500
     step = 3
@@ -268,10 +270,10 @@ if __name__ == '__main__':
         sequence = Sequence()
         sequence.load_seqs(file)
         stop = len(sequence.sequence) - window_size
-        #one_window(22770)
+        one_window(8353)
         # results = {i: one_window(i)[1] for i in range(22250, 22800, step)}
-        results = main(1, stop, step)
-        with open(file.replace('.fasta', '.json'), 'w') as f:
-            f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
+        # results = main(1, stop, step)
+        # with open(file.replace('.fasta', '.%s.json' % bootstrap_threshod), 'w') as f:
+        #     f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
 
 

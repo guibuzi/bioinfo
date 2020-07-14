@@ -253,11 +253,12 @@ def main(start, stop, step):
 
 if __name__ == '__main__':
     os.chdir("/home/zeng/Desktop/recombination-analysis-0328")
-    files = ['2019-ncov-cds.fasta', 'ratg13-cds.fasta', 'pangolin-gd-cds.fasta', 'pangolin-gx-cds.fasta', 'bat_SL_ZC45_cds.fasta', 'bat_SL_ZXC21_cds.fasta']
-    masks = ['idlist.2019-ncov', 'idlist.2019-ncov-ratg', 'idlist.2019-ncov-ratg-pangolin-gd', 'idlist.2019-ncov-ratg-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin']
+    # 'bat_SL_ZC45_cds.fasta', 'bat_SL_ZXC21_cds.fasta', 'idlist.2019-ncov-ratg-batlike-pangolin', 'idlist.2019-ncov-ratg-batlike-pangolin'
+    files = ['ratg13-cds.fasta', 'pangolin-gd-cds.fasta', 'pangolin-gx-cds.fasta']
+    masks = ['idlist.2019-ncov-ratg', 'idlist.2019-ncov-ratg-pangolin-gd', 'idlist.2019-ncov-ratg-pangolin']
 
-    files = ["ratg13-cds.fasta"]
-    masks = ['idlist.2019-ncov-ratg']
+    # files = ["ratg13-cds.fasta"]
+    # masks = ['idlist.2019-ncov-ratg']
 
     window_size = 500
     step = 3
@@ -270,10 +271,10 @@ if __name__ == '__main__':
         sequence = Sequence()
         sequence.load_seqs(file)
         stop = len(sequence.sequence) - window_size
-        one_window(8353)
-        # results = {i: one_window(i)[1] for i in range(22250, 22800, step)}
-        # results = main(1, stop, step)
-        # with open(file.replace('.fasta', '.%s.json' % bootstrap_threshod), 'w') as f:
-        #     f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
+        # one_window(8399)
+        # results = {i: one_window(i)[1] for i in range(8740, 8802, 3)}
+        results = main(1, stop, step)
+        with open(file.replace('.fasta', '.%s.json' % bootstrap_threshod), 'w') as f:
+            f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
 
 

@@ -8,14 +8,15 @@ from collections import Counter, defaultdict
 from multiprocessing import Pool, Process
 from multiprocessing.dummy import Pool as ThreadPool
 
+BLASTDB = "all-cov/all-cov"
 
 class Sequence:
     def __init__(self, acc=None, title=None, sequence=None, start=None, end=None):
         self.acc = acc
         self.title = title
         self.sequence = sequence
-        self.start = 1
-        self.end = end if end else None
+        self.start = start
+        self.end = end
     
     def __len__(self):
         return len(self.sequence)
@@ -24,16 +25,18 @@ class Sequence:
         self.__dict__[name] = value
 
     def load_seqs(self, file):
-        self.sequence = ''
+        sequence = ''
         with open(file) as f:
             for line in f:
                 if line.startswith(">"):
                     self.acc, *title = line[1:-1].split()
                     self.title = ' '.join(title)
                 else:
-                    self.sequence += line.strip()
+                    sequence += line.strip()
+                self.sequence = sequence
             else:
                 self.file = file
+                self.start = 1
                 self.end = len(self.sequence)
     
     def extract_part(self, start, end):
@@ -50,9 +53,9 @@ class Subject(Sequence):
         self.pident = pident
         self.score = score
     
-    def get_bident(self, query, length=1000, db='all-cov/all-cov'):
-        start = self.start - length if self.start - length > 0 else 1
-        end = self.end + length
+    def get_bident(self, query, length=1000, db=BLASTDB):
+        start = 1 if self.start - length < 1 else self.start - length
+        end = len(self) if self.end + length > len(self) else self.end + length
         commond ="blastdbcmd -db %s -entry %s -range %s-%s | \
                   blastn -subject %s -outfmt '6 pident' \
                   -max_hsps 1" % (db, self.acc, start, end, query.file)
@@ -93,13 +96,14 @@ class Subjects(list):
 class Query(Sequence):
     def __init__(self, acc, title, sequence, start, end):
         super().__init__(acc, title, sequence, start, end)
-        self.subjects = Subjects()
 
-    def blastn(self, mask, db='all-cov/all-cov'):
+    def blastn(self, db=BLASTDB):
+        self.subjects = Subjects()
         commond = "echo '%s' | blastn -db %s  -qcov_hsp_perc 70 -max_hsps 1 -perc_identity 70 \
                             -outfmt '6 qacc qstart qend sacc sstart send pident score sseq stitle' \
-                            -negative_seqidlist %s 2> /dev/null" % (self.sequence, db, mask)
-        for x in os.popen(commond).readlines():
+                            -negative_seqidlist negative.id -task blastn 2> /dev/null" % (self.sequence, db)
+        res = os.popen(commond).readlines()
+        for x in res:
             _, _, _, sacc, sstart, send, pident, score, sseq, stitle = x.rstrip().split('\t')        
             subject = Subject(sacc, stitle, sseq, int(sstart), int(send), float(pident), int(score))
             self.subjects.append(subject)
@@ -107,17 +111,14 @@ class Query(Sequence):
     def get_best_subjects(self): # list
         return self.subjects.best_subjects()
     
-    def get_item(self, item):
-        return self.subjects.get_item(item)
-    
-    def get_backbone(self, backbone):
-        commond = "echo '%s' | blastn -subject %s\
-                    -outfmt '6 sacc sstart send stitle sseq pident' \
-                    2> /dev/null" % (self.sequence, backbone.file)
-        sacc, sstart, send, stitle, sseq, pident = os.popen(commond).read().split()
-        backbone_i = backbone.extract_part(int(sstart), int(send))
-        backbone_i.pident = float(pident)
-        return backbone_i
+    def get_backbone(self, backbone_):
+        commond = "echo '%s' | blastn -subject backbone.fasta\
+                    -outfmt '6 sacc sstart send stitle sseq pident' -task blastn -max_hsps 1\
+                    2> /dev/null" % (self.sequence)
+        res = os.popen(commond).read().split()
+        sacc, sstart, send, _, sseq, _ = res
+        backbone = Sequence(sacc, backbone_, sseq, int(sstart), int(send))
+        return backbone
 
 
 class Triplet:
@@ -139,7 +140,7 @@ class Triplet:
     def _align(self):
         _tmp = '%s_%s_%s.fasta' % (self.query.acc, self.query.start, self.query.end)
         self._to_fasta(_tmp)
-        ress = os.popen('mafft --auto --quiet %s' % _tmp).read().split('>')[1:]
+        ress = os.popen('mafft --auto --quiet %s' % (_tmp)).read().split('>')[1:]
         tasks = [self.query, self.backbone, self.subject]
         for i, res in enumerate(ress):
             tasks[i].sequence = ''.join(res.split('\n')[1:])
@@ -149,11 +150,11 @@ class Triplet:
         _tmp = '%s_%s_%s' % (self.query.acc, self.query.start, self.query.end)
         with open('%s.axt' % _tmp, 'w') as f:
             f.write('%s-%s\n' % (self.query.acc, self.backbone.acc))
-            f.write('%s\n%s\n' % (self.query.sequence, self.background.sequence))
+            f.write('%s\n%s\n' % (self.query.sequence, self.backbone.sequence))
             f.write('\n')
             f.write('%s-%s\n' % (self.query.acc, self.subject.acc))
             f.write('%s\n%s\n' % (self.query.sequence, self.subject.sequence))
-        commond = "KaKs_Calculator -i %s.axt -o %s.axt.kaks -m LWL >> /dev/null 2>&1" % (_tmp, _tmp)
+        commond = "KaKs_Calculator -i %s.axt -o %s.axt.kaks -m NG >> /dev/null 2>&1" % (_tmp, _tmp)
         os.system(commond)
         with open('%s.axt.kaks' % _tmp) as f:
             f.readline()
@@ -163,11 +164,12 @@ class Triplet:
         os.remove('%s.axt' % _tmp)
         os.remove('%s.axt.kaks' % _tmp)
         f = lambda x: float(x) if x != 'NA' else 0
-        try:
-            cir = f(qs_ks) < f(qb_ks)
-        except:
-            cir = True
-        return cir
+        #try:
+        #    cir = f(qs_ks) < f(qb_ks)
+        #except:
+        #    cir = True
+        #return cir
+        return (f(qb_ks), f(qs_ks))
 
     def _identity(self, x, y):
         count = 0
@@ -186,50 +188,61 @@ class Triplet:
         query_seqs, backbone_seqs, subject_seqs = query_seq[idx], backbone_seq[idx], subject_seq[idx]
         count = 0
         for query_seq_i, backbone_seq_i, subject_seq_i in zip(query_seqs, backbone_seqs, subject_seqs):
-            if self._identity(query_seq_i, subject_seq_i) > self._identity(query_seq_i, backbone_seq_i):
+            qs_ident = self._identity(query_seq_i, subject_seq_i)
+            qb_ident = self._identity(query_seq_i, backbone_seq_i)
+            if  qs_ident> qb_ident:
                 count += 1
         return count / sample_size
 
 
 def one_window(start, *args, **kwargs):
     # status: I: backbone in subject; V: bootstrap and dS pass; E: empty
-    end = start + window_size
+    end = start + window_size - 1
     query_i = query.extract_part(start, end)
     query_i = Query(query_i.acc, query_i.title, query_i.sequence, start, end)
-    query_i.blastn(mask)
+    query_i.blastn()
     subjects = query_i.get_best_subjects()
-    subjects = Subjects([subject for subject in subjects if subject.get_bident(query) >= b_ident_threshod])
+    #subjects = Subjects([subject for subject in subjects if subject.get_bident(query) >= b_ident_threshod])
 
     try:
-        backbone_i = query_i.get_backbone(backbone)
+        backbone = query_i.get_backbone(backbone_title)
     except:
-        backbone_i = False
+        backbone = False
 
-    if backbone_i:
-        if backbone_i in subjects:
-            winner = [('I', backbone_i.title, 1)]
-            print('Postion: %s-%s\n\tWinner: %s, Status: I' % (start, end, backbone_i.title))
+    if backbone:
+        if backbone in subjects:
+            winner = [('I', backbone.title, 1)]
+            #print('Postion: %s-%s\n\tWinner: %s, Status: I' % (start, end, backbone.title))
         else:
             winner = []
-            print('Position: %s-%s' % (start, end))
+            bootstrap_value_list = []
+            #print('Position: %s-%s' % (start, end))
             for subject in subjects:
-                print('\tSubject: %s, Pident: %s' % (subject.title, subject.pident), end='')
-                triplet = Triplet(query_i, backbone_i, subject, align=True)
+                triplet = Triplet(query_i, backbone, subject, align=True)
                 bootstrap_value = triplet.bootstrap_support()
-                if bootstrap_value >= bootstrap_threshod:
-                # if bootstrap_value >= bootstrap_threshod and triplet.kaks():
+                bootstrap_value_list.append(bootstrap_value)
+                try:
+                    qb_ks, qs_ks = triplet.kaks()
+                except:
+                    qb_ks, qs_ks = 1, 0
+                    print(str(start), end=' ,')                
+                #print('\tSubject: %s, Pident: %s, Bootstrap value: %s, dS(QB): %s, dS(QS): %s' % (subject.title, subject.pident, bootstrap_value, qb_ks, qs_ks))
+                if (bootstrap_value > bootstrap_threshod) and (qs_ks < qb_ks):
                     winner.append(('V', subject.title, bootstrap_value))
-                    print(", Bootstrap value: %s\n\tWinner: %s, Status: V" % (bootstrap_value, subject.title))
-                else:
-                    print(", Bootstrap value: %s" % bootstrap_value)
+                    #print("\tWinner: %s, Status: V" % subject.title)
             if not winner:
-                winner.append(('E', backbone_i.title, 0))
-                print('\tWinner: %s, Status: E' % (backbone_i.title))
+                try:
+                    bootstrap_value = sum(bootstrap_value_list)/len(bootstrap_value_list)
+                except:
+                    print("no subjects", start)
+                    bootstrap_value = 0
+                winner.append(('E', backbone.title, bootstrap_value))
+                #print('\tWinner: %s, Status: E' % (backbone.title))
     else:
         winner = []
         for subject in subjects:
             winner.append(('X', subject.title, 0))
-            print("Position: %s-%s\n\tWinner: %s, Status: X" % (start, end, subject.title))
+            #print("Position: %s-%s\n\tWinner: %s, Status: X" % (start, end, subject.title))
     return start, winner
 
 def main(start, stop, step):
@@ -243,28 +256,35 @@ def main(start, stop, step):
     return results
 
 if __name__ == '__main__':
-    os.chdir("/Users/jinfeng/Desktop/recombination_task")
-    query_files = ["SARS-CoV-2.fasta"]
-    backbone_files = ["RmYN.fasta"]
-    masks = ['SARS-CoV-2.id']
+    path = "/home/zeng/Desktop/recombination_task/"
+    tasks = ['SARS-CoV-2', 'RmYN02', 'RaTG13', 'PangolinGD', 'PangolinGX']
+    cds = ['ORF1ab', 'S', 'M', 'N']
+    backbones = ['RmYN02', 'RaTG13', 'PangolinGD', 'PangolinGX', 'BatSL']
 
-    window_size = 500
+    window_size = 501
     step = 3
-    b_length = 1000
-    b_ident_threshod = 80
+    #b_length = 1000
+    #b_ident_threshod = 80
     bootstrap_times = 500
     bootstrap_threshod = 0.8
 
-    for mask, query_file, backbone_file in zip(masks, query_files, backbone_files):
-        query = Sequence()
-        query.load_seqs(query_file)
-        backbone = Sequence()
-        backbone.load_seqs(backbone_file)
-        stop = len(query) - window_size + 1
-        # one_window(22770)
-        results = {i: one_window(i)[1] for i in range(12310, 12480, step)}
-        # results = main(1, stop, step)
-        # with open(file.replace('.fasta', '.json'), 'w') as f:
-        #     f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
+    for i in range(5):
+        print("\nTask: %s" % tasks[i], end=' ')
+        os.chdir(path + tasks[i])
+        backbone_title = backbones[i]
+        for cds_i in cds:
+            if cds_i:
+                print("\n\tCDS: %s, " % cds_i, end=" ")
+                query_file = tasks[i]+'_'+cds_i+'.fasta'
+                query = Sequence()
+                query.load_seqs(query_file)
+
+                #one_window(1312)
+                stop = len(query) - window_size + 2
+                #results = {i: one_window(i) for i in range(21202, 21142, 3)}
+                results = main(1, stop, step)
+
+                with open(query_file.replace('.fasta', '.501.json'), 'w') as f:
+                    f.write(json.dumps(results, indent='\t', sort_keys=True, separators=(',', ': ')))
 
 

@@ -9,4 +9,4 @@ mosaic/__pycache__
 nCov/*.jpg
 nCov/*.log
 nCov/result/*
-nCov/log*
+nCoV/recombination_task/*
